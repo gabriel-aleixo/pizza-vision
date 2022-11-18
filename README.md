@@ -1,8 +1,7 @@
 # PizzaYeah9 (name is WIP)
 
-*Bad frozen pizza twice, never again!*
-
-----------
+*Same bad frozen pizza twice...* 😖
+*Never again!* 🥶🍕🙌
 
 ## Introduction
 
