@@ -33,11 +33,11 @@ That last part ended up meaning tackling a funny and silly problem affecting the
 
 #### So many frozen pizzas 😨
 
-For a while now, we have been trying differe
+coming soon...
 
 #### Scrambling through imperfect methods
 
-Shared Google Photos album, Notion page...
+Shared Google Photos album, Notion page... coming soon.
 
 ## Installation
 
