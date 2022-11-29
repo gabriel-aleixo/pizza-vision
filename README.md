@@ -76,6 +76,7 @@ TODO
 ## TODO
 
 Everything...
+- [ ] Implement infinite scroll on the home feed
 
 Plus:
 - [ ] How to maintain a local copy of all the users' images to avoid load them via the network each time they are needed
