@@ -15,7 +15,7 @@ import {
 import { IonReactRouter } from "@ionic/react-router";
 import { images, person, pizza } from "ionicons/icons";
 import Home from "./pages/Home";
-import Photos from "./pages/Photos";
+import Library from "./pages/Library";
 import LoginPage from "./pages/Login";
 import AccountPage from "./pages/Account";
 import Details from "./pages/Details";
@@ -77,7 +77,7 @@ const ProtectedRoutes: React.FC = () => {
   return (
     <IonTabs>
       <IonRouterOutlet>
-        <ProtectedRoute exact path="/library" component={Photos} />
+        <ProtectedRoute exact path="/library" component={Library} />
         <ProtectedRoute path="/library/details/:filename" component={Details} />
         <ProtectedRoute exact path="/feed" component={Home} />
         <ProtectedRoute path="/feed/details/:filename" component={Details} />

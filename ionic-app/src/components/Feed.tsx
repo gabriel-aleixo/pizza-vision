@@ -18,12 +18,22 @@ import {
   IonTitle,
   IonToolbar,
 } from "@ionic/react";
-import { camera, thumbsDown, thumbsUp } from "ionicons/icons";
-import { usePhotoGallery, UserPhoto } from "../hooks/usePhotoGallery";
+import { camera } from "ionicons/icons";
+import { useContext } from "react";
+import { usePhotoGallery } from "../hooks/usePhotoGallery";
+import Context from "../Context";
 import "./Feed.css";
 
 const Feed: React.FC = () => {
-  const { photos, takePhoto, setFlag } = usePhotoGallery();
+  const { takePhoto } = usePhotoGallery();
+  const { photos } = useContext(Context);
+
+  photos.sort(
+    (a, b) =>
+      parseInt(b.filepath.substring(0, b.filepath.lastIndexOf("."))) -
+      parseInt(a.filepath.substring(0, a.filepath.lastIndexOf(".")))
+  );
+
   return (
     <>
       {photos.map((photo, index) => (
@@ -38,30 +48,12 @@ const Feed: React.FC = () => {
           <IonImg src={photo.webviewPath} />
           {!photo.flag ? (
             <>
-              <IonCardContent>Not rated yet.. Yes or no?</IonCardContent>
-              <IonButton
-                type="button"
-                color="medium"
-                size="large"
-                fill="outline"
-                data-flag="yes"
-                onClick={(e) => setFlag(photo, e)}
-              >
-                👍
-              </IonButton>
-              <IonButton
-                type="button"
-                color="medium"
-                size="large"
-                fill="outline"
-                data-flag="no"
-                onClick={(e) => setFlag(photo, e)}
-              >
-                👎
-              </IonButton>
+              <IonCardTitle className="ion-padding">
+                Not rated yet...
+              </IonCardTitle>
             </>
           ) : (
-            <IonCardTitle>
+            <IonCardTitle className="ion-padding">
               {photo.flag === "yes" ? <>👍</> : <>👎</>}
             </IonCardTitle>
           )}

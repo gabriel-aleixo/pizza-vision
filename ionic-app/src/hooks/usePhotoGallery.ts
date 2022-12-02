@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import { isPlatform } from "@ionic/react";
 import {
   Camera,
@@ -7,33 +7,51 @@ import {
   Photo,
 } from "@capacitor/camera";
 import { Filesystem, Directory } from "@capacitor/filesystem";
-import { Preferences } from "@capacitor/preferences";
+// import { Preferences } from "@capacitor/preferences";
+import { Storage } from "@ionic/storage";
+
 import { Capacitor } from "@capacitor/core";
-import Photos from "../pages/Photos";
+import Context from "../Context";
+import { useMobileNet } from "./useMobileNet";
 
 const PHOTO_STORAGE = "photos";
+const store = new Storage();
+
+const createStorage = async () => {
+  await store.create();
+  return;
+};
+createStorage();
 
 export function usePhotoGallery() {
   const [photos, setPhotos] = useState<UserPhoto[]>([]);
 
+  const { dispatch } = useContext(Context);
+  const { getEmbeddings, getPredictions } = useMobileNet();
+
   useEffect(() => {
     const loadSaved = async () => {
-      const { value } = await Preferences.get({ key: PHOTO_STORAGE });
+      // const { value } = await Preferences.get({ key: PHOTO_STORAGE });
+      const value = await store.get(PHOTO_STORAGE);
 
-      const photosInPreferences = (
+      const photosInStore = (
         value ? JSON.parse(value) : []
       ) as UserPhoto[];
+
       // If running on web
       if (!isPlatform("hybrid")) {
-        for (let photo of photosInPreferences) {
+        for (let photo of photosInStore) {
           const file = await Filesystem.readFile({
             path: photo.filepath,
             directory: Directory.Data,
           });
           photo.webviewPath = `data:image/jpeg;base64,${file.data}`;
+          // getEmbeddings(photo);
+          // getPredictions(photo);
         }
       }
-      setPhotos(photosInPreferences);
+      setPhotos(photosInStore);
+      dispatch({ type: "SET_STATE", state: { photos: photosInStore } });
     };
     loadSaved();
   }, []);
@@ -60,17 +78,19 @@ export function usePhotoGallery() {
     });
 
     if (isPlatform("hybrid")) {
-      // Diaplay the new image rewriting the 'file://' path to HTTP
+      // Display the new image rewriting the 'file://' path to HTTP
       return {
         filepath: savedFile.uri,
         webviewPath: Capacitor.convertFileSrc(savedFile.uri),
         flag: null,
+        embeddings: [],
       };
     } else {
       return {
         filepath: fileName,
         webviewPath: photo.webPath,
         flag: null,
+        embeddings: [],
       };
     }
   };
@@ -81,42 +101,36 @@ export function usePhotoGallery() {
       source: CameraSource.Camera,
       quality: 90,
     });
+
     const filename = new Date().getTime() + ".jpeg";
     const savedFileImage = await savePicture(photo, filename);
+
+    // Put call to getEmbedding here, then set poto.embeddings with the result
+    savedFileImage.embeddings = await getEmbeddings(savedFileImage);
+    console.log("Embeddings: ", savedFileImage.embeddings);
+
+    // TODO We can add predictions to the Photo from here, in the future;
+
     const newPhotos = [savedFileImage, ...photos];
     setPhotos(newPhotos);
-    Preferences.set({ key: PHOTO_STORAGE, value: JSON.stringify(newPhotos) });
+    // Preferences.set({ key: PHOTO_STORAGE, value: JSON.stringify(newPhotos) });
+    store.set(PHOTO_STORAGE, JSON.stringify(newPhotos));
+    dispatch({ type: "SET_STATE", state: { photos: newPhotos } });
   };
 
   const setFlag = async (photo: UserPhoto, e?: any) => {
-    console.log(e.target.dataset.flag);
-    console.log(photo, photo.flag);
-    photo.flag = e.target.dataset.flag;
+    // console.log(e.target.dataset.flag);
+    // console.log(photo, photo.flag);
+    e.target.dataset.flag !== "" ?  photo.flag = e.target.dataset.flag : photo.flag = null;
     const filepath = photo.filepath;
-    console.log(photos);
     const newPhotos = [
       photo,
       ...photos.filter((photo) => photo.filepath !== filepath),
     ];
-    newPhotos.sort(
-      (a, b) =>
-        parseInt(a.filepath.substring(0, a.filepath.lastIndexOf("."))) -
-        parseInt(a.filepath.substring(0, a.filepath.lastIndexOf(".")))
-    );
     setPhotos(newPhotos);
-    Preferences.set({ key: PHOTO_STORAGE, value: JSON.stringify(newPhotos) });
-
-    // const filename = photo.filepath.substr(photo.filepath.lastIndexOf("/") + 1);
-    // const file = await Filesystem.readFile({
-    //   path: filename,
-    //   directory: Directory.Data,
-    // });
-
-    // await Filesystem.appendFile({
-    //   path: filename,
-    //   data: file.data,
-    //   directory: Directory.Data,
-    // });
+    // Preferences.set({ key: PHOTO_STORAGE, value: JSON.stringify(photos) });
+    store.set(PHOTO_STORAGE, JSON.stringify(photos));
+    dispatch({ type: "SET_STATE", state: { photos: photos } });
   };
 
   const deletePhoto = async (photo: UserPhoto) => {
@@ -124,7 +138,8 @@ export function usePhotoGallery() {
     const newPhotos = photos.filter((p) => p.filepath !== photo.filepath);
 
     // Update photos array cache by overwriting the existing photo array
-    Preferences.set({ key: PHOTO_STORAGE, value: JSON.stringify(newPhotos) });
+    // Preferences.set({ key: PHOTO_STORAGE, value: JSON.stringify(newPhotos) });
+    store.set(PHOTO_STORAGE, JSON.stringify(newPhotos));
 
     // Then delete photo from filesystem
     const filename = photo.filepath.substr(photo.filepath.lastIndexOf("/") + 1);
@@ -133,6 +148,7 @@ export function usePhotoGallery() {
       directory: Directory.Data,
     });
     setPhotos(newPhotos);
+    dispatch({ type: "SET_STATE", state: { photos: newPhotos } });
   };
 
   return {
@@ -164,4 +180,12 @@ export interface UserPhoto {
   filepath: string;
   webviewPath?: string;
   flag?: string | null;
+  embeddings:
+    | number
+    | number[]
+    | number[][]
+    | number[][][]
+    | number[][][][]
+    | number[][][][][]
+    | number[][][][][][];
 }

@@ -8,6 +8,7 @@ import {
   IonLabel,
   IonList,
   IonPage,
+  IonSpinner,
   IonTitle,
   IonToolbar,
   useIonToast,
@@ -16,11 +17,16 @@ import {
 import { supabase } from "../supabaseClient";
 import Context from "../Context";
 import { Redirect } from "react-router";
+import { usePhotoGallery } from "../hooks/usePhotoGallery";
 
 function LoginPage() {
   const { dispatch, session, isEnterOtp } = useContext(Context);
+  const { photos } = usePhotoGallery();
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
   useEffect(() => {
+    setIsLoading(true);
+
     supabase.auth.getSession().then(({ data: { session } }) => {
       dispatch({ type: "SET_STATE", state: { session: session } });
     });
@@ -29,6 +35,9 @@ function LoginPage() {
       console.log(event);
       dispatch({ type: "SET_STATE", state: { session: session } });
     });
+
+    dispatch({ type: "SET_STATE", state: { photos: photos } });
+    setIsLoading(false);
   }, [dispatch]);
 
   if (session) {
@@ -39,10 +48,18 @@ function LoginPage() {
     <IonPage>
       <IonHeader>
         <IonToolbar>
-          <IonTitle>PizzaYah9!</IonTitle>
+          <IonTitle>PizzaVision</IonTitle>
         </IonToolbar>
       </IonHeader>
-      {isEnterOtp ? <OtpField /> : <LoginField />}
+      {isLoading ? (
+        <IonContent>
+          <IonSpinner></IonSpinner>
+        </IonContent>
+      ) : isEnterOtp ? (
+        <OtpField />
+      ) : (
+        <LoginField />
+      )}
     </IonPage>
   );
 }
@@ -60,17 +77,21 @@ function LoginField() {
     if (error) {
       await showToast({
         message: error.message,
-        duration: 5000,
+        duration: 3000,
       });
+      await hideLoading();
+      return;
     }
     dispatch({ type: "SET_STATE", state: { isEnterOtp: true } });
     await hideLoading();
+    return;
   };
+
   return (
     <IonContent>
       <div className="ion-padding">
         <h1>Login</h1>
-        <p>Enter your email to receive the sign in code</p>
+        <p>Enter your phone number to receive a code to sign in</p>
       </div>
       <IonList inset={true}>
         <form onSubmit={handleLogin}>

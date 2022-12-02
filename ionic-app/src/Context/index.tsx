@@ -1,5 +1,6 @@
 import React, { createContext, useReducer, Dispatch, ReactNode } from "react";
 import { Session, User } from "@supabase/gotrue-js/src/lib/types"
+import { UserPhoto } from "../hooks/usePhotoGallery"
 
 interface AppState {
   session: Session | null;
@@ -9,6 +10,7 @@ interface AppState {
   isError: boolean;
   isLoading: boolean;
   isEnterOtp: boolean;
+  photos: UserPhoto[];
 }
 
 const initialState: AppState = {
@@ -19,6 +21,7 @@ const initialState: AppState = {
   isError: false,
   isLoading: false,
   isEnterOtp: false,
+  photos: [],
 };
 
 type StateAction = {

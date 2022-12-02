@@ -14,7 +14,7 @@ const Home: React.FC = () => {
       <IonHeader>
         <IonToolbar>
           <IonTitle>
-            Home
+            PizzaVision (aka Pizz.AI)
           </IonTitle>
         </IonToolbar>
       </IonHeader>
