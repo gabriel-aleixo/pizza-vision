@@ -1,18 +1,19 @@
 # PizzaVision
 
->We bought the same bad frozen pizza twice... 😖 
->Never again! 🥶🍕🙌 - **Me**
+> We bought the same bad frozen pizza twice... 😖
+> Never again! 🥶🍕🙌 - **Me**
 
->As the pizza nourishes the body, so too does wisdom nourish the mind. Just as the body cannot thrive without proper sustenance, the mind cannot thrive without wisdom. Therefore, let us nourish our minds with the wisdom of the Dhamma, and our bodies with the nourishing sustenance of pizza. - **GPT-3 on the importance of eating pizza**
-
+> As the pizza nourishes the body, so too does wisdom nourish the mind. Just as the body cannot thrive without proper sustenance, the mind cannot thrive without wisdom. Therefore, let us nourish our minds with the wisdom of the Dhamma, and our bodies with the nourishing sustenance of pizza. - **GPT-3 on the importance of eating pizza**
 
 ## Introduction
+
 PizzaVision is a mobile app that lets you take pictures of the packages of the frozen pizza you buy, and tag them as either "👍" or "👎".
 
 The next time you are buying frozen pizza and you can't remember if you already had or liked that particular type - a surprisingly common problem! - just take snapshot of the box and the app will show you if you tagged it in the past.
 
-### Video Demo: [PizzaVision Video Demo](https://)
-### Live Demo: [gabriel-aleixo.github.io/cs50/final-project](https://gabriel-aleixo.github.io/cs50/final-project/)
+### Video Demo: [PizzaVision Video Demo](https://youtu.be/UvWqgWUDMGE)
+
+### Live Demo: [pizzavision.onrender.com](https://pizzavision.onrender.com/)
 
 ### Description
 
@@ -43,7 +44,8 @@ It may seem silly, but it's very hard to keep track of diff
 Shared Google Photos album, Notion page... coming soon.
 
 #### Only Pizza, really?
-Well, I guess you *could* use the app for other products, such as wine bottles, beer, coffee, or any other packaged product, really. But why *would* you do that, when there are so many other more complicated apps to do basically the same thing?
+
+Well, I guess you _could_ use the app for other products, such as wine bottles, beer, coffee, or any other packaged product, really. But why _would_ you do that, when there are so many other more complicated apps to do basically the same thing?
 
 Besides, if you don't have your pizza game in order, you shouldn't be worrying about unimportant things like coffe or beer. First things first!
 
@@ -68,12 +70,8 @@ TODO
 - [Supabase](https://supabase.com/docs): relational database (PostgreSQL), Auth, object storage, basic CRUD API, realtime API (which is really cool). Very easy to set-up, growing community, based on open source software, strong row-level security built-in, free tier available.
 - TODO: currently the images are only store in the local storage, but the plan is to sync the data with the Supabase database and retrieve it in case the use uninstalls the app and wants to install again.
 
-
-#### Hosting
-- Probably Render https://render.com/pricing
-
-
 ### Features
+
 - User authentication via one time password with phone number
 - Basic user profile management (name, website)
 - Take pictures with your phone's camera
@@ -90,12 +88,16 @@ TODO
 - Implement optional login with email or auth providers
 - Sync local images with cloud
 - Add account management options: change email, password, avatar, delete account
+- Manage loading state while photos are being loaded
+- Resize uploaded photos for performance
 - Improve overall look and feel
 
 ## FAQs
+
 TODO
 
 ## References
+
 - https://ionicframework.com/docs/react/your-first-app
 - https://github.com/tensorflow/tfjs-models/tree/master/mobilenet
 
