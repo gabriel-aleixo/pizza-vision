@@ -122,6 +122,12 @@ function AccountPage() {
         <form onSubmit={updateProfile}>
           <IonItem>
             <IonLabel>
+              <p>Email</p>
+              <p>{session?.user?.email}</p>
+            </IonLabel>
+          </IonItem>
+          <IonItem>
+            <IonLabel>
               <p>Phone</p>
               <p>{session?.user?.phone}</p>
             </IonLabel>
@@ -151,14 +157,14 @@ function AccountPage() {
             ></IonInput>
           </IonItem>
           <div className="ion-text-center">
-            <IonButton fill="clear" type="submit">
+            <IonButton type="submit">
               Update Profile
             </IonButton>
           </div>
         </form>
 
         <div className="ion-text-center">
-          <IonButton fill="clear" onClick={signOut}>
+          <IonButton color="warning" onClick={signOut}>
             Log Out
           </IonButton>
         </div>

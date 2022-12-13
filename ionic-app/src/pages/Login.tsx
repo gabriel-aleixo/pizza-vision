@@ -13,6 +13,7 @@ import {
   IonToolbar,
   useIonToast,
   useIonLoading,
+  IonButtons,
 } from "@ionic/react";
 import { supabase } from "../supabaseClient";
 import Context from "../Context";
@@ -67,13 +68,13 @@ function LoginPage() {
 function LoginField() {
   const [showLoading, hideLoading] = useIonLoading();
   const [showToast] = useIonToast();
-  const { dispatch, phone } = useContext(Context);
+  const { dispatch, email } = useContext(Context);
 
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     console.log();
     e.preventDefault();
     await showLoading();
-    const { data, error } = await supabase.auth.signInWithOtp({ phone: phone });
+    const { data, error } = await supabase.auth.signInWithOtp({ email: email });
     if (error) {
       await showToast({
         message: error.message,
@@ -91,28 +92,41 @@ function LoginField() {
     <IonContent>
       <div className="ion-padding">
         <h1>Login</h1>
-        <p>Enter your phone number to receive a code to sign in</p>
+        <p>Enter your email to receive a code to sign in</p>
       </div>
       <IonList inset={true}>
         <form onSubmit={handleLogin}>
           <IonItem>
-            <IonLabel position="stacked">Phone</IonLabel>
+            <IonLabel position="stacked">Email</IonLabel>
             <IonInput
-              value={phone}
-              name="phone"
+              value={email}
+              name="email"
               onIonChange={(e) =>
                 dispatch({
                   type: "SET_STATE",
-                  state: { phone: e.detail.value ?? "" },
+                  state: { email: e.detail.value ?? "" },
                 })
               }
-              type="tel"
+              type="email"
+              required
             />
           </IonItem>
           <div className="ion-text-center">
             <IonButton type="submit">Next</IonButton>
           </div>
         </form>
+        <div className="ion-text-center">
+          <IonButton
+            color="medium"
+            fill="clear"
+            type="button"
+            onClick={() =>
+              dispatch({ type: "SET_STATE", state: { isEnterOtp: true } })
+            }
+          >
+            I already have a code
+          </IonButton>
+        </div>
       </IonList>
     </IonContent>
   );
@@ -122,18 +136,18 @@ function OtpField() {
   const [otp, setOtp] = useState("");
   const [showLoading, hideLoading] = useIonLoading();
   const [showToast] = useIonToast();
-  const { dispatch, phone } = useContext(Context);
+  const { dispatch, email } = useContext(Context);
 
   const handleVerifyOtp = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     await showLoading();
 
     // Link example
-    console.log("Verification", phone, otp);
+    // console.log("Verification", email, otp);
     let { data, error } = await supabase.auth.verifyOtp({
-      phone: phone,
+      email: email,
       token: otp,
-      type: "sms",
+      type: "magiclink",
     });
     if (error) {
       console.log(error);
@@ -155,7 +169,7 @@ function OtpField() {
 
   return (
     <IonContent>
-      <div className="ion-Padding">
+      <div className="ion-padding">
         <h1>Login</h1>
         <p>Please enter the code you received via email</p>
       </div>
@@ -164,6 +178,7 @@ function OtpField() {
           <IonItem>
             <IonLabel position="stacked">Code</IonLabel>
             <IonInput
+              required
               value={otp}
               name="otp"
               onIonChange={(e) => setOtp(e.detail.value ?? "")}
@@ -174,6 +189,18 @@ function OtpField() {
             <IonButton type="submit">Login</IonButton>
           </div>
         </form>
+        <div className="ion-text-center">
+          <IonButton
+            color="medium"
+            fill="clear"
+            type="button"
+            onClick={() =>
+              dispatch({ type: "SET_STATE", state: { isEnterOtp: false, email:"" } })
+            }
+          >
+            Cancel
+          </IonButton>
+        </div>
       </IonList>
     </IonContent>
   );
