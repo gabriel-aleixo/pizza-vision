@@ -1,4 +1,16 @@
-.postsContainer {
+.photo-flag {
+    position: absolute;
+    bottom: 0px;
+    right: 10px;
+    z-index: 999 !important;
+    font-size: 2rem;
+    /* background: white; */
+    background-color: var(--ion-background-color);
+    padding: 5px;
+    border-radius: 8px;
+}
+
+/* .postsContainer {
 
     margin-top: 1.5rem;
     margin-bottom: 1.5rem;
@@ -215,4 +227,4 @@
     padding: 0;
     color: rgb(175, 175, 175);
     font-size: 0.6rem;
-}
+} */

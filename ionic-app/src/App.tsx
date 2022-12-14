@@ -14,9 +14,11 @@ import {
 } from "@ionic/react";
 import { IonReactRouter } from "@ionic/react-router";
 import { images, person, pizza } from "ionicons/icons";
+import {ReactComponent as Logo} from "./assets/pizzavision-logo.svg"
 import Home from "./pages/Home";
 import Library from "./pages/Library";
 import LoginPage from "./pages/Login";
+import VerifyPage from "./pages/Verify";
 import AccountPage from "./pages/Account";
 import Details from "./pages/Details";
 import Context from "./Context";
@@ -64,6 +66,7 @@ const App: React.FC = () => {
     <IonApp>
       <IonReactRouter>
         <Route path="/login" component={LoginPage} />
+        <Route path="/login/verify" component={VerifyPage} />
         <ProtectedRoute path="/" component={ProtectedRoutes} />
         <Route path="*">
           <Redirect to="/login" />
@@ -90,6 +93,7 @@ const ProtectedRoutes: React.FC = () => {
         </IonTabButton>
         <IonTabButton tab="tab1" href="/feed">
           <IonIcon icon={pizza} />
+          {/* <Logo className="logo" /> */}
           <IonLabel>Feed</IonLabel>
         </IonTabButton>
         <IonTabButton tab="tab3" href="/account">

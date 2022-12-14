@@ -119,20 +119,15 @@ function AccountPage() {
           onDidDismiss={() => setShowLoading(false)}
           message={"Hold on..."}
         />
-        <form onSubmit={updateProfile}>
+        <form onSubmit={updateProfile} className="ion-padding">
           <IonItem>
-            <IonLabel>
-              <p>Email</p>
-              <p>{session?.user?.email}</p>
-            </IonLabel>
+            <IonLabel position="stacked">Email</IonLabel>
+              <IonInput type="text" name="email" value={session?.user?.email} disabled/>
           </IonItem>
           <IonItem>
-            <IonLabel>
-              <p>Phone</p>
-              <p>{session?.user?.phone}</p>
-            </IonLabel>
+            <IonLabel position="stacked">Phone</IonLabel>
+              <IonInput type="text" name="phone" value={session?.user?.phone} disabled />
           </IonItem>
-
           <IonItem>
             <IonLabel position="stacked">Name</IonLabel>
             <IonInput
@@ -142,29 +137,18 @@ function AccountPage() {
               onIonChange={(e) =>
                 setProfile({ ...profile, username: e.detail.value ?? "" })
               }
-            ></IonInput>
+            />
           </IonItem>
 
-          <IonItem>
-            <IonLabel position="stacked">Website</IonLabel>
-            <IonInput
-              type="url"
-              name="website"
-              value={profile.website}
-              onIonChange={(e) =>
-                setProfile({ ...profile, website: e.detail.value ?? "" })
-              }
-            ></IonInput>
-          </IonItem>
           <div className="ion-text-center">
-            <IonButton type="submit">
+            <IonButton expand="block" type="submit">
               Update Profile
             </IonButton>
           </div>
         </form>
 
-        <div className="ion-text-center">
-          <IonButton color="warning" onClick={signOut}>
+        <div className="ion-text-center ion-padding">
+          <IonButton expand="block" color="warning" onClick={signOut}>
             Log Out
           </IonButton>
         </div>

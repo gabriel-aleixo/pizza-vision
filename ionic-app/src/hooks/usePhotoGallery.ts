@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext } from "react";
-import { isPlatform } from "@ionic/react";
+import { isPlatform, useIonLoading } from "@ionic/react";
 import {
   Camera,
   CameraResultType,
@@ -29,14 +29,14 @@ export function usePhotoGallery() {
   const { dispatch } = useContext(Context);
   const { getEmbeddings, getPredictions } = useMobileNet();
 
+  const [showLoading, hideLoading] = useIonLoading();
+
   useEffect(() => {
     const loadSaved = async () => {
       // const { value } = await Preferences.get({ key: PHOTO_STORAGE });
       const value = await store.get(PHOTO_STORAGE);
 
-      const photosInStore = (
-        value ? JSON.parse(value) : []
-      ) as UserPhoto[];
+      const photosInStore = (value ? JSON.parse(value) : []) as UserPhoto[];
 
       // If running on web
       if (!isPlatform("hybrid")) {
@@ -96,11 +96,30 @@ export function usePhotoGallery() {
   };
 
   const takePhoto = async () => {
-    const photo = await Camera.getPhoto({
-      resultType: CameraResultType.Uri,
-      source: CameraSource.Camera,
-      quality: 90,
-    });
+    await showLoading();
+
+    const getPhoto = async () => {
+      try {
+        const photo = await Camera.getPhoto({
+          resultType: CameraResultType.Uri,
+          source: CameraSource.Camera,
+          quality: 90,
+          width: 500,
+        });
+        return photo;
+      } catch (error) {
+        console.error(error)
+        await hideLoading();
+        return undefined;
+      }
+    };
+
+    const photo = await getPhoto();
+
+    if (!photo) {
+      await hideLoading();
+      return;
+    }
 
     const filename = new Date().getTime() + ".jpeg";
     const savedFileImage = await savePicture(photo, filename);
@@ -116,12 +135,15 @@ export function usePhotoGallery() {
     // Preferences.set({ key: PHOTO_STORAGE, value: JSON.stringify(newPhotos) });
     store.set(PHOTO_STORAGE, JSON.stringify(newPhotos));
     dispatch({ type: "SET_STATE", state: { photos: newPhotos } });
+    await hideLoading();
   };
 
   const setFlag = async (photo: UserPhoto, e?: any) => {
     // console.log(e.target.dataset.flag);
     // console.log(photo, photo.flag);
-    e.target.dataset.flag !== "" ?  photo.flag = e.target.dataset.flag : photo.flag = null;
+    e.target.dataset.flag !== ""
+      ? (photo.flag = e.target.dataset.flag)
+      : (photo.flag = null);
     const filepath = photo.filepath;
     const newPhotos = [
       photo,

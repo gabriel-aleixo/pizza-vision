@@ -9,7 +9,6 @@ interface AppState {
   phone: string;
   isError: boolean;
   isLoading: boolean;
-  isEnterOtp: boolean;
   photos: UserPhoto[];
 }
 
@@ -20,7 +19,6 @@ const initialState: AppState = {
   phone: "",
   isError: false,
   isLoading: false,
-  isEnterOtp: false,
   photos: [],
 };
 

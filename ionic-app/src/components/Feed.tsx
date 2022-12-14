@@ -5,6 +5,7 @@ import {
   IonCardHeader,
   IonCardSubtitle,
   IonCardTitle,
+  IonChip,
   IonCol,
   IonContent,
   IonFab,
@@ -37,27 +38,27 @@ const Feed: React.FC = () => {
   return (
     <>
       {photos.map((photo, index) => (
-        <IonCard
-          button
-          key={index}
-          routerLink={
-            "/feed/details/" +
-            photo.filepath.substring(0, photo.filepath.lastIndexOf("."))
-          }
-        >
-          <IonImg src={photo.webviewPath} />
-          {!photo.flag ? (
+        <>
+          <IonCard
+            button
+            key={index}
+            routerLink={
+              "/feed/details/" +
+              photo.filepath.substring(0, photo.filepath.lastIndexOf("."))
+            }
+          >
+            <IonImg src={photo.webviewPath} />
+            {!photo.flag ? (
             <>
-              <IonCardTitle className="ion-padding">
-                Not rated yet...
-              </IonCardTitle>
+              <h2 className="photo-flag">🤷</h2>
             </>
           ) : (
-            <IonCardTitle className="ion-padding">
+            <h2 className="photo-flag">
               {photo.flag === "yes" ? <>👍</> : <>👎</>}
-            </IonCardTitle>
+            </h2>
           )}
-        </IonCard>
+          </IonCard>
+        </>
       ))}
       <IonFab vertical="bottom" horizontal="center" slot="fixed">
         <IonFabButton onClick={() => takePhoto()}>

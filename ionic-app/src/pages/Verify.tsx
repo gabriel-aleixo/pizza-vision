@@ -14,16 +14,18 @@ import {
   useIonToast,
   useIonLoading,
   IonButtons,
+  IonBackButton,
 } from "@ionic/react";
 import { supabase } from "../supabaseClient";
 import Context from "../Context";
 import { Redirect, useHistory } from "react-router";
 import { usePhotoGallery } from "../hooks/usePhotoGallery";
 
-function LoginPage() {
-  const { dispatch, session } = useContext(Context);
+function VerifyPage() {
+  const { dispatch, session, email } = useContext(Context);
   const { photos } = usePhotoGallery();
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const history = useHistory();
 
   useEffect(() => {
     setIsLoading(true);
@@ -41,74 +43,105 @@ function LoginPage() {
     setIsLoading(false);
   }, [dispatch]);
 
+  const handleCancel = () => {
+    dispatch({
+      type: "SET_STATE",
+      state: { email: "" },
+    });
+    history.replace("/login");
+  };
+
   if (session) {
     return <Redirect to="/feed" />;
+  }
+
+  if (email === "") {
+    return <Redirect to="/login" />;
   }
 
   return (
     <IonPage>
       <IonHeader>
         <IonToolbar>
+          <IonButtons slot="start">
+            <IonBackButton />
+          </IonButtons>
           <IonTitle>PizzaVision</IonTitle>
         </IonToolbar>
       </IonHeader>
       <IonContent>
-        {isLoading ? <IonSpinner />: <LoginField />}
+        {isLoading ? <IonSpinner /> : <OtpField />}
+        <div className="ion-text-center">
+          <IonButton
+            color="medium"
+            fill="clear"
+            type="button"
+            expand="block"
+            onClick={() => handleCancel()}
+          >
+            Cancel
+          </IonButton>
+        </div>
       </IonContent>
     </IonPage>
   );
 }
 
-function LoginField() {
+function OtpField() {
+  const [otp, setOtp] = useState("");
   const [showLoading, hideLoading] = useIonLoading();
   const [showToast] = useIonToast();
   const { dispatch, email } = useContext(Context);
 
-  const history = useHistory();
-
-  const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
-    console.log();
+  const handleVerifyOtp = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     await showLoading();
-    const { data, error } = await supabase.auth.signInWithOtp({ email: email });
+
+    // Link example
+    // console.log("Verification", email, otp);
+    let { data, error } = await supabase.auth.verifyOtp({
+      email: email,
+      token: otp,
+      type: "magiclink",
+    });
     if (error) {
+      console.log(error);
       await showToast({
         message: error.message,
         duration: 3000,
       });
+      setOtp("");
       await hideLoading();
       return;
     }
+    setOtp("");
+    dispatch({
+      type: "SET_STATE",
+      state: { user: data.user, session: data.session },
+    });
     await hideLoading();
-    history.push("/login/verify");
-    return;
   };
 
   return (
     <>
       <div className="ion-padding">
         <h1>Login</h1>
-        <p>Enter your email to receive a code to sign in</p>
+        <p>Please enter the code you received via email</p>
       </div>
       <IonList inset={true}>
-        <form onSubmit={handleLogin}>
+        <form onSubmit={handleVerifyOtp}>
           <IonItem>
-            <IonLabel position="stacked">Email</IonLabel>
+            <IonLabel position="stacked">Code</IonLabel>
             <IonInput
-              value={email}
-              name="email"
-              onIonChange={(e) =>
-                dispatch({
-                  type: "SET_STATE",
-                  state: { email: e.detail.value ?? "" },
-                })
-              }
-              type="email"
               required
+              value={otp}
+              name="otp"
+              onIonChange={(e) => setOtp(e.detail.value ?? "")}
+              type="number"
             />
           </IonItem>
           <div className="ion-text-center">
-            <IonButton expand="block" type="submit">Next</IonButton>
+            <IonButton expand="block" type="submit">Login</IonButton>
           </div>
         </form>
       </IonList>
@@ -116,4 +149,4 @@ function LoginField() {
   );
 }
 
-export default LoginPage;
+export default VerifyPage;
