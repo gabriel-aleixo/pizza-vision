@@ -1,0 +1,19 @@
+.detail-buttons ion-button {
+    border: 2px solid black;
+    font-size: 1.4em;
+    border-radius: 12px;
+}
+
+.detail-main-image {
+    border-bottom: 2px solid black;
+    aspect-ratio: 1;
+    max-height: 50vh;
+    width: 100%;
+    object-fit: cover;
+}
+
+.detail-card {
+    aspect-ratio: 1;
+    margin: 8px;
+    margin-inline: 8px;
+}

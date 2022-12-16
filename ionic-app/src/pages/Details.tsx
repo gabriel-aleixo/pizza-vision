@@ -16,6 +16,9 @@ import {
   IonList,
   IonListHeader,
   IonCard,
+  IonGrid,
+  IonCol,
+  IonRow,
 } from "@ionic/react";
 import Context from "../Context";
 import { RouteComponentProps, useHistory } from "react-router";
@@ -29,6 +32,7 @@ import {
   trash,
 } from "ionicons/icons";
 
+import "./Details.css";
 
 interface DetailsProps
   extends RouteComponentProps<{
@@ -44,7 +48,9 @@ const Details: React.FC<DetailsProps> = ({ match }) => {
 
   const history = useHistory();
 
-  const tabname = match.url.split("/")[1].charAt(0).toUpperCase() +  match.url.split("/")[1].slice(1);
+  const tabname =
+    match.url.split("/")[1].charAt(0).toUpperCase() +
+    match.url.split("/")[1].slice(1);
 
   const filename = match.params.filename;
 
@@ -76,7 +82,7 @@ const Details: React.FC<DetailsProps> = ({ match }) => {
 
   const filterSimPhotos = (photo: SimilarPhoto) => {
     if (photo.sim && photo.sim > 0.6) {
-      console.log(photo.sim)
+      console.log(photo.sim);
       return true;
     }
     return false;
@@ -99,7 +105,7 @@ const Details: React.FC<DetailsProps> = ({ match }) => {
   return (
     <IonPage>
       <IonHeader>
-        <IonToolbar>
+        <IonToolbar color="primary">
           <IonButtons slot="start">
             <IonBackButton />
           </IonButtons>
@@ -108,154 +114,91 @@ const Details: React.FC<DetailsProps> = ({ match }) => {
       </IonHeader>
       <IonContent>
         {selectedPhoto ? (
-          selectedPhoto.flag == null ? (
-            <>
-              <IonImg src={selectedPhoto.webviewPath} />
-              <IonItem shape="round" lines="none" color="medium">
-                <IonLabel>Not rated yet</IonLabel>
-              </IonItem>
-              <IonItem shape="round" lines="none">
-                <IonButton
-                  color="medium"
-                  fill="outline"
-                  size="large"
-                  data-flag="yes"
-                  onClick={(e) => setFlag(selectedPhoto, e)}
-                >
-                  👍
-                </IonButton>
-                <IonButton
-                  color="medium"
-                  fill="outline"
-                  size="large"
-                  data-flag="no"
-                  onClick={(e) => setFlag(selectedPhoto, e)}
-                >
-                  👎
-                </IonButton>
-                <IonButton
-                  color="medium"
-                  fill="outline"
-                  size="large"
-                  data-flag=""
-                  onClick={(e) => setFlag(selectedPhoto, e)}
-                >
-                  🤷
-                </IonButton>
-                <IonButton
-                  color="danger"
-                  fill="outline"
-                  size="large"
-                  onClick={() => setPhotoToDelete(selectedPhoto)}
-                >
-                  <IonIcon icon={trash} />
-                </IonButton>
-              </IonItem>{" "}
-            </>
-          ) : selectedPhoto.flag === "yes" ? (
-            <>
-              <IonImg src={selectedPhoto.webviewPath} />
-              <IonItem shape="round" lines="none" color="success">
-                <IonLabel>It's a YES</IonLabel>
-                <IonIcon icon={thumbsUp} size="large" slot="end" />
-              </IonItem>
-              <IonItem shape="round" lines="none">
-                <IonButton
-                  color="medium"
-                  fill="outline"
-                  size="large"
-                  data-flag="yes"
-                  onClick={(e) => setFlag(selectedPhoto, e)}
-                >
-                  👍
-                </IonButton>
-                <IonButton
-                  color="medium"
-                  fill="outline"
-                  size="large"
-                  data-flag="no"
-                  onClick={(e) => setFlag(selectedPhoto, e)}
-                >
-                  👎
-                </IonButton>
-                <IonButton
-                  color="medium"
-                  fill="outline"
-                  size="large"
-                  data-flag=""
-                  onClick={(e) => setFlag(selectedPhoto, e)}
-                >
-                  🤷
-                </IonButton>
-                <IonButton
-                  color="danger"
-                  fill="outline"
-                  size="large"
-                  onClick={() => setPhotoToDelete(selectedPhoto)}
-                >
-                  <IonIcon icon={trash} />
-                </IonButton>
-              </IonItem>{" "}
-            </>
-          ) : (
-            <>
-              <IonImg src={selectedPhoto.webviewPath} />
-              <IonItem shape="round" lines="none" color="danger">
-                <IonLabel>It's a NO</IonLabel>
-                <IonIcon icon={thumbsDown} size="large" slot="end" />
-              </IonItem>
-              <IonItem shape="round" lines="none">
-                <IonButton
-                  color="medium"
-                  fill="outline"
-                  size="large"
-                  data-flag="yes"
-                  onClick={(e) => setFlag(selectedPhoto, e)}
-                >
-                  👍
-                </IonButton>
-                <IonButton
-                  color="medium"
-                  fill="outline"
-                  size="large"
-                  data-flag="no"
-                  onClick={(e) => setFlag(selectedPhoto, e)}
-                >
-                  👎
-                </IonButton>
-                <IonButton
-                  color="medium"
-                  fill="outline"
-                  size="large"
-                  data-flag=""
-                  onClick={(e) => setFlag(selectedPhoto, e)}
-                >
-                  🤷
-                </IonButton>
-                <IonButton
-                  color="danger"
-                  fill="outline"
-                  size="large"
-                  onClick={() => setPhotoToDelete(selectedPhoto)}
-                >
-                  <IonIcon icon={trash} />
-                </IonButton>
-              </IonItem>{" "}
-            </>
-          )
+          <>
+            <IonImg
+              className="detail-main-image"
+              src={selectedPhoto.webviewPath}
+            />
+            <IonGrid className="detail-buttons">
+              <IonRow>
+                <IonCol>
+                  <IonButton
+                    color={
+                      selectedPhoto.flag === null
+                        ? "light"
+                        : selectedPhoto.flag === "yes"
+                        ? "secondary"
+                        : "light"
+                    }
+                    data-flag="yes"
+                    onClick={(e) => setFlag(selectedPhoto, e)}
+                  >
+                    👍
+                  </IonButton>
+                </IonCol>
+                <IonCol>
+                  <IonButton
+                    color={
+                      selectedPhoto.flag === null
+                        ? "light"
+                        : selectedPhoto.flag === "no"
+                        ? "secondary"
+                        : "light"
+                    }
+                    data-flag="no"
+                    onClick={(e) => setFlag(selectedPhoto, e)}
+                  >
+                    👎
+                  </IonButton>
+                </IonCol>
+                <IonCol>
+                  <IonButton
+                    color={selectedPhoto.flag === null ? "secondary" : "light"}
+                    data-flag=""
+                    onClick={(e) => setFlag(selectedPhoto, e)}
+                  >
+                    🤷
+                  </IonButton>
+                </IonCol>
+                <IonCol>
+                  <IonButton
+                    color="light"
+                    onClick={() => setPhotoToDelete(selectedPhoto)}
+                  >
+                    <IonIcon color="danger" icon={trash} />
+                  </IonButton>
+                </IonCol>
+              </IonRow>
+            </IonGrid>
+          </>
         ) : (
           <></>
         )}
         <IonList className="ion-padding">
           <IonListHeader>
-            <IonLabel>Similar Images</IonLabel>
+            <h2>Similar Images</h2>
           </IonListHeader>
           {filteredSimPhotos.length > 0 ? (
-            filteredSimPhotos.map((photo, index) => (
-              <IonCard key={index}>
-                <IonImg src={photo.webviewPath} />
-              </IonCard>
-            ))
+            <IonGrid>
+              <IonRow>
+                {filteredSimPhotos.map((photo, index) => (
+                  <IonCol key={index} size="6">
+                    <IonCard className="detail-card">
+                      <IonImg src={photo.webviewPath} />
+                      {!photo.flag ? (
+                        <>
+                          <h2 className="photo-flag-small">🤷</h2>
+                        </>
+                      ) : (
+                        <h2 className="photo-flag-small">
+                          {photo.flag === "yes" ? <>👍</> : <>👎</>}
+                        </h2>
+                      )}
+                    </IonCard>
+                  </IonCol>
+                ))}
+              </IonRow>
+            </IonGrid>
           ) : (
             <IonItem lines="none">
               <IonLabel>nothing to see here...</IonLabel>

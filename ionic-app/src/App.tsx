@@ -43,6 +43,7 @@ import "@ionic/react/css/display.css";
 /* Theme variables */
 import "./theme/variables.css";
 // import "./theme/custom-tab-bar.css";
+import "./theme/custom-ui-components.css"
 
 setupIonicReact();
 
@@ -86,7 +87,7 @@ const ProtectedRoutes: React.FC = () => {
         <ProtectedRoute path="/feed/details/:filename" component={Details} />
         <ProtectedRoute path="/account" component={AccountPage} />
       </IonRouterOutlet>
-      <IonTabBar slot="bottom">
+      <IonTabBar slot="bottom" color={"primary"}>
         <IonTabButton tab="tab2" href="/library">
           <IonIcon icon={images} />
           <IonLabel>Libary</IonLabel>

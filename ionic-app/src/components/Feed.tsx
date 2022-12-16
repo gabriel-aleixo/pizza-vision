@@ -40,6 +40,7 @@ const Feed: React.FC = () => {
       {photos.map((photo, index) => (
         <>
           <IonCard
+          className="photo-card"
             button
             key={index}
             routerLink={
@@ -61,7 +62,7 @@ const Feed: React.FC = () => {
         </>
       ))}
       <IonFab vertical="bottom" horizontal="center" slot="fixed">
-        <IonFabButton onClick={() => takePhoto()}>
+        <IonFabButton  color="secondary" onClick={() => takePhoto()}>
           <IonIcon icon={camera}></IonIcon>
         </IonFabButton>
       </IonFab>

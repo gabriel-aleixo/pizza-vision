@@ -15,7 +15,7 @@ import { UserPhoto } from "../hooks/usePhotoGallery";
 import { useContext, useEffect, useState } from "react";
 import Context from "../Context";
 
-import "./Tab2.css";
+import "./library.css";
 
 const Library: React.FC = () => {
   const [segment, setSegment] = useState<string>("all");
@@ -25,12 +25,11 @@ const Library: React.FC = () => {
   const PhotosElementProps = { photos: libraryPhotos };
 
   useEffect(() => {
-    setLibraryPhotos(photos)
-  
-  }, [photos])
-  
+    setLibraryPhotos(photos);
+  }, [photos]);
+
   const filterPhotos = (segment: string) => {
-    setSegment(segment)
+    setSegment(segment);
     setLibraryPhotos(photos);
     if (segment === "all") return;
     const newLibraryPhotos = photos.filter((photo) => photo.flag === segment);
@@ -40,8 +39,8 @@ const Library: React.FC = () => {
   return (
     <IonPage>
       <IonHeader>
-        <IonToolbar>
-          <IonSegment value={segment}>
+        <IonToolbar color={"primary"}>
+          <IonSegment color={"secondary"} value={segment}>
             <IonSegmentButton onClick={() => filterPhotos("all")} value="all">
               All
             </IonSegmentButton>
@@ -66,7 +65,6 @@ interface PhotosProps {
 }
 
 const PhotosElement: React.FC<PhotosProps> = ({ photos }) => {
-
   return (
     <IonGrid className="ion-no-padding">
       <IonRow>
@@ -80,6 +78,15 @@ const PhotosElement: React.FC<PhotosProps> = ({ photos }) => {
               }
             >
               <IonImg src={photo.webviewPath} />
+              {!photo.flag ? (
+                <>
+                  <h2 className="photo-flag-small">🤷</h2>
+                </>
+              ) : (
+                <h2 className="photo-flag-small">
+                  {photo.flag === "yes" ? <>👍</> : <>👎</>}
+                </h2>
+              )}
             </IonCard>
           </IonCol>
         ))}

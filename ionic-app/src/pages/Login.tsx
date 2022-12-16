@@ -14,11 +14,15 @@ import {
   useIonToast,
   useIonLoading,
   IonButtons,
+  IonNote,
 } from "@ionic/react";
 import { supabase } from "../supabaseClient";
 import Context from "../Context";
 import { Redirect, useHistory } from "react-router";
 import { usePhotoGallery } from "../hooks/usePhotoGallery";
+
+// Styles
+import "./Login.css"
 
 function LoginPage() {
   const { dispatch, session } = useContext(Context);
@@ -48,7 +52,7 @@ function LoginPage() {
   return (
     <IonPage>
       <IonHeader>
-        <IonToolbar>
+        <IonToolbar color={"primary"}>
           <IonTitle>PizzaVision</IonTitle>
         </IonToolbar>
       </IonHeader>
@@ -88,13 +92,12 @@ function LoginField() {
     <>
       <div className="ion-padding">
         <h1>Login</h1>
-        <p>Enter your email to receive a code to sign in</p>
+        <p>First, enter the email you want to use to sign-in.</p>
       </div>
-      <IonList inset={true}>
-        <form onSubmit={handleLogin}>
-          <IonItem>
-            <IonLabel position="stacked">Email</IonLabel>
+        <form className="ion-padding" onSubmit={handleLogin}>
+            <IonLabel position="stacked">Email*</IonLabel>
             <IonInput
+            clearInput={true}
               value={email}
               name="email"
               onIonChange={(e) =>
@@ -106,12 +109,13 @@ function LoginField() {
               type="email"
               required
             />
-          </IonItem>
-          <div className="ion-text-center">
+            <IonNote slot="helper">
+              *Required
+            </IonNote>
+          <div className="ion-text-center ion-padding-top">
             <IonButton expand="block" type="submit">Next</IonButton>
           </div>
         </form>
-      </IonList>
     </>
   );
 }

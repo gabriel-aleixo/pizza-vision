@@ -12,6 +12,7 @@ import {
   //   useIonLoading,
   useIonToast,
   useIonRouter,
+  IonNote,
 } from "@ionic/react";
 import { useEffect, useState } from "react";
 import { supabase } from "../supabaseClient";
@@ -107,7 +108,7 @@ function AccountPage() {
   return (
     <IonPage>
       <IonHeader>
-        <IonToolbar>
+        <IonToolbar color="primary">
           <IonTitle>Account</IonTitle>
         </IonToolbar>
       </IonHeader>
@@ -120,15 +121,13 @@ function AccountPage() {
           message={"Hold on..."}
         />
         <form onSubmit={updateProfile} className="ion-padding">
-          <IonItem>
-            <IonLabel position="stacked">Email</IonLabel>
-              <IonInput type="text" name="email" value={session?.user?.email} disabled/>
-          </IonItem>
-          <IonItem>
-            <IonLabel position="stacked">Phone</IonLabel>
-              <IonInput type="text" name="phone" value={session?.user?.phone} disabled />
-          </IonItem>
-          <IonItem>
+            <div>
+              <IonLabel position="stacked">Email</IonLabel>
+                <IonInput type="text" name="email" value={session?.user?.email} disabled/>
+                <IonNote slot="helper">You can't change this at the moment</IonNote>
+            </div>
+            {/* <IonLabel position="stacked">Phone</IonLabel>
+              <IonInput type="text" name="phone" value={session?.user?.phone} disabled /> */}
             <IonLabel position="stacked">Name</IonLabel>
             <IonInput
               type="text"
@@ -138,9 +137,8 @@ function AccountPage() {
                 setProfile({ ...profile, username: e.detail.value ?? "" })
               }
             />
-          </IonItem>
 
-          <div className="ion-text-center">
+          <div className="ion-text-center ion-padding-top">
             <IonButton expand="block" type="submit">
               Update Profile
             </IonButton>
@@ -150,6 +148,11 @@ function AccountPage() {
         <div className="ion-text-center ion-padding">
           <IonButton expand="block" color="warning" onClick={signOut}>
             Log Out
+          </IonButton>
+        </div>
+        <div className="ion-text-center ion-padding">
+          <IonButton expand="block" color="danger" href={`mailto:delete@gabrielaleixo.com?subject=Please delete my account&body=Please delete my account with the email ${session?.user?.email}`}>
+            Delete Account (email us)
           </IonButton>
         </div>
       </IonContent>

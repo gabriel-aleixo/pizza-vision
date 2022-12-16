@@ -1,0 +1,5 @@
+ion-toolbar {
+    border-bottom: 2px solid black;
+    border-bottom-left-radius: 8px;
+    border-bottom-right-radius: 8px;
+}

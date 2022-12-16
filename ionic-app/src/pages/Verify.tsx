@@ -15,11 +15,15 @@ import {
   useIonLoading,
   IonButtons,
   IonBackButton,
+  IonNote,
 } from "@ionic/react";
 import { supabase } from "../supabaseClient";
 import Context from "../Context";
 import { Redirect, useHistory } from "react-router";
 import { usePhotoGallery } from "../hooks/usePhotoGallery";
+
+// Styles
+import "./Verify.css";
 
 function VerifyPage() {
   const { dispatch, session, email } = useContext(Context);
@@ -62,7 +66,7 @@ function VerifyPage() {
   return (
     <IonPage>
       <IonHeader>
-        <IonToolbar>
+        <IonToolbar color={"primary"}>
           <IonButtons slot="start">
             <IonBackButton />
           </IonButtons>
@@ -71,10 +75,9 @@ function VerifyPage() {
       </IonHeader>
       <IonContent>
         {isLoading ? <IonSpinner /> : <OtpField />}
-        <div className="ion-text-center">
+        <div className="ion-text-center ion-padding">
           <IonButton
-            color="medium"
-            fill="clear"
+          color={"warning"}
             type="button"
             expand="block"
             onClick={() => handleCancel()}
@@ -126,25 +129,28 @@ function OtpField() {
     <>
       <div className="ion-padding">
         <h1>Login</h1>
-        <p>Please enter the code you received via email</p>
+        <p>Now enter the code we sent you via email.</p>
+        <p>If you haven't received it yet, give it a minute and check you spam folder.</p>
       </div>
-      <IonList inset={true}>
-        <form onSubmit={handleVerifyOtp}>
-          <IonItem>
-            <IonLabel position="stacked">Code</IonLabel>
-            <IonInput
-              required
-              value={otp}
-              name="otp"
-              onIonChange={(e) => setOtp(e.detail.value ?? "")}
-              type="number"
-            />
-          </IonItem>
-          <div className="ion-text-center">
-            <IonButton expand="block" type="submit">Login</IonButton>
-          </div>
-        </form>
-      </IonList>
+      <form className="ion-padding" onSubmit={handleVerifyOtp}>
+        <IonLabel position="stacked">Code*</IonLabel>
+        <IonInput
+        className="ion-text-center"
+        clearInput={true}
+        placeholder="_ _ _ _ _ _"
+          required
+          value={otp}
+          name="otp"
+          onIonChange={(e) => setOtp(e.detail.value ?? "")}
+          type="number"
+        />
+        <IonNote slot="helper">*It's a 6 numbers code, and it's required</IonNote>
+        <div className="ion-text-center ion-padding-top">
+          <IonButton expand="block" type="submit">
+            Login
+          </IonButton>
+        </div>
+      </form>
     </>
   );
 }

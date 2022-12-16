@@ -6,13 +6,13 @@ import {
   IonToolbar,
 } from "@ionic/react";
 import Feed from "../components/Feed";
-import "./Tab1.css";
+import "./home.css";
 
 const Home: React.FC = () => {
   return (
     <IonPage>
       <IonHeader>
-        <IonToolbar>
+        <IonToolbar color={"primary"} >
           <IonTitle>
             PizzaVision
           </IonTitle>
