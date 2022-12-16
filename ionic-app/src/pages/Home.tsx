@@ -1,5 +1,4 @@
 import {
-  IonContent,
   IonHeader,
   IonPage,
   IonTitle,
@@ -18,9 +17,7 @@ const Home: React.FC = () => {
           </IonTitle>
         </IonToolbar>
       </IonHeader>
-      <IonContent fullscreen className="ion-padding">
         <Feed />
-      </IonContent>
     </IonPage>
   );
 };

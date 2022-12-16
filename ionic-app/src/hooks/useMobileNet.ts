@@ -1,9 +1,6 @@
-import React from "react";
 import { UserPhoto, base64FromPath } from "./usePhotoGallery";
 import "@tensorflow/tfjs";
 import * as mobilenet from "@tensorflow-models/mobilenet";
-import { Directory, Filesystem } from "@capacitor/filesystem";
-import { Photo } from "@capacitor/camera";
 
 export function useMobileNet() {
   const version = 2;
@@ -36,7 +33,7 @@ export function useMobileNet() {
         .then(async () => {
           const embeddings = model.infer(image, true);
           const data = await embeddings.array();
-          console.log(data);
+          // console.log(data);
           resolve(data);
         })
         .catch((error) => {

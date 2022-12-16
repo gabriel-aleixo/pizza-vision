@@ -14,7 +14,6 @@ import { Capacitor } from "@capacitor/core";
 import Context from "../Context";
 import { useMobileNet } from "./useMobileNet";
 
-const PHOTO_STORAGE = "photos";
 const store = new Storage();
 
 const createStorage = async () => {
@@ -26,10 +25,12 @@ createStorage();
 export function usePhotoGallery() {
   const [photos, setPhotos] = useState<UserPhoto[]>([]);
 
-  const { dispatch } = useContext(Context);
-  const { getEmbeddings, getPredictions } = useMobileNet();
+  const { dispatch, session } = useContext(Context);
+  const { getEmbeddings } = useMobileNet();
 
   const [showLoading, hideLoading] = useIonLoading();
+
+const PHOTO_STORAGE = `photos-usr-${session?.user?.id ?? "undefined"}`;
 
   useEffect(() => {
     const loadSaved = async () => {
@@ -54,7 +55,7 @@ export function usePhotoGallery() {
       dispatch({ type: "SET_STATE", state: { photos: photosInStore } });
     };
     loadSaved();
-  }, []);
+  }, [PHOTO_STORAGE, dispatch]);
 
   const savePicture = async (
     photo: Photo,
@@ -127,7 +128,7 @@ export function usePhotoGallery() {
 
     // Put call to getEmbedding here, then set poto.embeddings with the result
     savedFileImage.embeddings = await getEmbeddings(savedFileImage);
-    console.log("Embeddings: ", savedFileImage.embeddings);
+    // console.log("Embeddings: ", savedFileImage.embeddings);
 
     // TODO We can add predictions to the Photo from here, in the future;
 

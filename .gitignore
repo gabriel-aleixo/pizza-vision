@@ -154,3 +154,6 @@ cython_debug/
 # Test Images folder
 /images
 /test-images
+
+# Other project assets
+/other-assets

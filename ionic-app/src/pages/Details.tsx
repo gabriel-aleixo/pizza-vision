@@ -82,7 +82,7 @@ const Details: React.FC<DetailsProps> = ({ match }) => {
 
   const filterSimPhotos = (photo: SimilarPhoto) => {
     if (photo.sim && photo.sim > 0.6) {
-      console.log(photo.sim);
+      // console.log(photo.sim);
       return true;
     }
     return false;

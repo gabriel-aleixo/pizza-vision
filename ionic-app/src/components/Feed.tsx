@@ -1,26 +1,16 @@
 import {
-  IonButton,
   IonCard,
-  IonCardContent,
-  IonCardHeader,
-  IonCardSubtitle,
-  IonCardTitle,
-  IonChip,
   IonCol,
   IonContent,
   IonFab,
   IonFabButton,
   IonGrid,
-  IonHeader,
   IonIcon,
   IonImg,
-  IonPage,
   IonRow,
-  IonTitle,
-  IonToolbar,
 } from "@ionic/react";
 import { camera } from "ionicons/icons";
-import { useContext } from "react";
+import { createRef, useContext } from "react";
 import { usePhotoGallery } from "../hooks/usePhotoGallery";
 import Context from "../Context";
 import "./Feed.css";
@@ -28,6 +18,7 @@ import "./Feed.css";
 const Feed: React.FC = () => {
   const { takePhoto } = usePhotoGallery();
   const { photos } = useContext(Context);
+  const feedContentRef = createRef<HTMLIonContentElement>();
 
   photos.sort(
     (a, b) =>
@@ -36,37 +27,47 @@ const Feed: React.FC = () => {
   );
 
   return (
-    <>
-      {photos.map((photo, index) => (
-        <>
-          <IonCard
-          className="photo-card"
-            button
-            key={index}
-            routerLink={
-              "/feed/details/" +
-              photo.filepath.substring(0, photo.filepath.lastIndexOf("."))
-            }
-          >
-            <IonImg src={photo.webviewPath} />
-            {!photo.flag ? (
-            <>
-              <h2 className="photo-flag">🤷</h2>
-            </>
-          ) : (
-            <h2 className="photo-flag">
-              {photo.flag === "yes" ? <>👍</> : <>👎</>}
-            </h2>
-          )}
-          </IonCard>
-        </>
-      ))}
+    <IonContent fullscreen ref={feedContentRef}>
+      <IonGrid>
+        <IonRow>
+          {photos.map((photo, index) => (
+            <IonCol size="12" key={index}>
+              <IonCard
+                className="photo-card"
+                button
+                routerLink={
+                  "/feed/details/" +
+                  photo.filepath.substring(0, photo.filepath.lastIndexOf("."))
+                }
+              >
+                <IonImg src={photo.webviewPath} />
+                {!photo.flag ? (
+                  <>
+                    <h2 className="photo-flag">🤷</h2>
+                  </>
+                ) : (
+                  <h2 className="photo-flag">
+                    {photo.flag === "yes" ? <>👍</> : <>👎</>}
+                  </h2>
+                )}
+              </IonCard>
+            </IonCol>
+          ))}
+        </IonRow>
+      </IonGrid>
+
       <IonFab vertical="bottom" horizontal="center" slot="fixed">
-        <IonFabButton  color="secondary" onClick={() => takePhoto()}>
+        <IonFabButton
+          color="secondary"
+          onClick={() => {
+            takePhoto();
+            feedContentRef.current?.scrollToTop(500);
+          }}
+        >
           <IonIcon icon={camera}></IonIcon>
         </IonFabButton>
       </IonFab>
-    </>
+    </IonContent>
   );
 };
 

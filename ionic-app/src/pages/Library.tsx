@@ -25,29 +25,29 @@ const Library: React.FC = () => {
   const PhotosElementProps = { photos: libraryPhotos };
 
   useEffect(() => {
-    setLibraryPhotos(photos);
-  }, [photos]);
+    const filterPhotos = (segment: string) => {
+      setSegment(segment);
+      setLibraryPhotos(photos);
+      if (segment === "all") return;
+      const newLibraryPhotos = photos.filter((photo) => photo.flag === segment);
+      setLibraryPhotos(newLibraryPhotos);
+    };
 
-  const filterPhotos = (segment: string) => {
-    setSegment(segment);
-    setLibraryPhotos(photos);
-    if (segment === "all") return;
-    const newLibraryPhotos = photos.filter((photo) => photo.flag === segment);
-    setLibraryPhotos(newLibraryPhotos);
-  };
+    filterPhotos(segment);
+  }, [photos, segment]);
 
   return (
     <IonPage>
       <IonHeader>
         <IonToolbar color={"primary"}>
           <IonSegment color={"secondary"} value={segment}>
-            <IonSegmentButton onClick={() => filterPhotos("all")} value="all">
+            <IonSegmentButton onClick={() => setSegment("all")} value="all">
               All
             </IonSegmentButton>
-            <IonSegmentButton onClick={() => filterPhotos("yes")} value="yes">
+            <IonSegmentButton onClick={() => setSegment("yes")} value="yes">
               👍
             </IonSegmentButton>
-            <IonSegmentButton onClick={() => filterPhotos("no")} value="no">
+            <IonSegmentButton onClick={() => setSegment("no")} value="no">
               👎
             </IonSegmentButton>
           </IonSegment>
