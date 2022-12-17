@@ -18,7 +18,7 @@ const initialState: AppState = {
   email: "",
   phone: "",
   isError: false,
-  isLoading: false,
+  isLoading: true,
   photos: [],
 };
 

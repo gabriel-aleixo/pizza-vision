@@ -7,6 +7,7 @@ import {
   IonIcon,
   IonLabel,
   IonRouterOutlet,
+  IonLoading,
   IonTabBar,
   IonTabButton,
   IonTabs,
@@ -14,7 +15,7 @@ import {
 } from "@ionic/react";
 import { IonReactRouter } from "@ionic/react-router";
 import { images, person, pizza } from "ionicons/icons";
-import {ReactComponent as Logo} from "./assets/pizzavision-logo.svg"
+import { ReactComponent as Logo } from "./assets/pizzavision-logo.svg";
 import Home from "./pages/Home";
 import Library from "./pages/Library";
 import LoginPage from "./pages/Login";
@@ -43,36 +44,49 @@ import "@ionic/react/css/display.css";
 /* Theme variables */
 import "./theme/variables.css";
 // import "./theme/custom-tab-bar.css";
-import "./theme/custom-ui-components.css"
+import "./theme/custom-ui-components.css";
 
 setupIonicReact();
 
 const App: React.FC = () => {
   // const [session, setSession] = useState<Session | null>();
 
-  const { dispatch } = useContext(Context);
+  const { dispatch, isLoading } = useContext(Context);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
-      dispatch({ type: "SET_STATE", state: { session: session } });
+      dispatch({
+        type: "SET_STATE",
+        state: { session: session, isLoading: false },
+      });
     });
 
     supabase.auth.onAuthStateChange((event, session) => {
       console.log(event);
-      dispatch({ type: "SET_STATE", state: { session: session } });
+      dispatch({
+        type: "SET_STATE",
+        state: { session: session, isLoading: false },
+      });
     });
   }, [dispatch]);
 
+  if (isLoading) {
+    <IonApp>
+      <IonLoading isOpen={isLoading} duration={5000} />
+    </IonApp>
+  }
+
   return (
     <IonApp>
-      <IonReactRouter>
-        <Route path="/login" component={LoginPage} />
-        <Route path="/login/verify" component={VerifyPage} />
-        <ProtectedRoute path="/" component={ProtectedRoutes} />
-        <Route path="*">
-          <Redirect to="/login" />
-        </Route>
-      </IonReactRouter>
+        <IonReactRouter>
+          <Route path="/login" component={LoginPage} />
+          <Route path="/login/verify" component={VerifyPage} />
+          <ProtectedRoute path="/" component={ProtectedRoutes} />
+          <Route path="*">
+            <Redirect to="/login" />
+          </Route>
+        </IonReactRouter>
+        {/* <IonLoading isOpen={isLoading} duration={100} /> */}
     </IonApp>
   );
 };

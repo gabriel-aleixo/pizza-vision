@@ -4,16 +4,13 @@ import {
   IonContent,
   IonHeader,
   IonInput,
-  IonItem,
   IonLabel,
-  IonList,
   IonPage,
   IonSpinner,
   IonTitle,
   IonToolbar,
   useIonToast,
   useIonLoading,
-  IonButtons,
   IonNote,
 } from "@ionic/react";
 import { supabase } from "../supabaseClient";
@@ -22,28 +19,38 @@ import { Redirect, useHistory } from "react-router";
 import { usePhotoGallery } from "../hooks/usePhotoGallery";
 
 // Styles
-import "./Login.css"
+import "./Login.css";
 
 function LoginPage() {
-  const { dispatch, session } = useContext(Context);
+  const { dispatch, session, isLoading } = useContext(Context);
   const { photos } = usePhotoGallery();
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  // const [isLoading, setIsLoading] = useState<boolean>(false);
 
   useEffect(() => {
-    setIsLoading(true);
+    // setIsLoading(true);
 
     supabase.auth.getSession().then(({ data: { session } }) => {
-      dispatch({ type: "SET_STATE", state: { session: session } });
+      dispatch({
+        type: "SET_STATE",
+        state: { session: session, isLoading: false },
+      });
     });
 
     supabase.auth.onAuthStateChange((event, session) => {
       console.log(event);
-      dispatch({ type: "SET_STATE", state: { session: session } });
+      dispatch({
+        type: "SET_STATE",
+        state: { session: session, isLoading: false },
+      });
     });
 
-    dispatch({ type: "SET_STATE", state: { photos: photos } });
-    setIsLoading(false);
+    // dispatch({ type: "SET_STATE", state: { photos: photos } });
+    // setIsLoading(false);
   }, [dispatch]);
+
+  if (isLoading) {
+    return <></>;
+  }
 
   if (session) {
     return <Redirect to="/feed" />;
@@ -57,7 +64,7 @@ function LoginPage() {
         </IonToolbar>
       </IonHeader>
       <IonContent>
-        {isLoading ? <IonSpinner />: <LoginField />}
+        <LoginField />
       </IonContent>
     </IonPage>
   );
@@ -94,28 +101,28 @@ function LoginField() {
         <h1>Login</h1>
         <p>First, enter the email you want to use to sign-in.</p>
       </div>
-        <form className="ion-padding" onSubmit={handleLogin}>
-            <IonLabel position="stacked">Email*</IonLabel>
-            <IonInput
-            clearInput={true}
-              value={email}
-              name="email"
-              onIonChange={(e) =>
-                dispatch({
-                  type: "SET_STATE",
-                  state: { email: e.detail.value ?? "" },
-                })
-              }
-              type="email"
-              required
-            />
-            <IonNote slot="helper">
-              *Required
-            </IonNote>
-          <div className="ion-text-center ion-padding-top">
-            <IonButton expand="block" type="submit">Next</IonButton>
-          </div>
-        </form>
+      <form className="ion-padding" onSubmit={handleLogin}>
+        <IonLabel position="stacked">Email*</IonLabel>
+        <IonInput
+          clearInput={true}
+          value={email}
+          name="email"
+          onIonChange={(e) =>
+            dispatch({
+              type: "SET_STATE",
+              state: { email: e.detail.value ?? "" },
+            })
+          }
+          type="email"
+          required
+        />
+        <IonNote slot="helper">*Required</IonNote>
+        <div className="ion-text-center ion-padding-top">
+          <IonButton expand="block" type="submit">
+            Next
+          </IonButton>
+        </div>
+      </form>
     </>
   );
 }
