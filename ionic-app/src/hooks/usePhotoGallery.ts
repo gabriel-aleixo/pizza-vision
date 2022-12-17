@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useContext } from "react";
-import { isPlatform, useIonLoading } from "@ionic/react";
+import { useState, useEffect, useContext } from "react";
+import { isPlatform, useIonLoading, useIonToast } from "@ionic/react";
 import {
   Camera,
   CameraResultType,
@@ -9,7 +9,7 @@ import {
 import { Filesystem, Directory } from "@capacitor/filesystem";
 // import { Preferences } from "@capacitor/preferences";
 import { Storage } from "@ionic/storage";
-
+import { supabase } from "../supabaseClient";
 import { Capacitor } from "@capacitor/core";
 import Context from "../Context";
 import { useMobileNet } from "./useMobileNet";
@@ -25,17 +25,39 @@ createStorage();
 export function usePhotoGallery() {
   const [photos, setPhotos] = useState<UserPhoto[]>([]);
 
-  const { dispatch, session } = useContext(Context);
+  const { dispatch, session, isLoading } = useContext(Context);
   const { getEmbeddings } = useMobileNet();
 
   const [showLoading, hideLoading] = useIonLoading();
 
-const PHOTO_STORAGE = `photos-usr-${session?.user?.id ?? "undefined"}`;
+  const [showToast] = useIonToast();
+
+  const PHOTO_STORAGE = `photos-usr-${session?.user?.id ?? "undefined"}`;
 
   useEffect(() => {
     const loadSaved = async () => {
       // const { value } = await Preferences.get({ key: PHOTO_STORAGE });
-      const value = await store.get(PHOTO_STORAGE);
+      let value = await store.get(PHOTO_STORAGE);
+
+      // If no local copy of key-value store, look for cloud backup
+      if (!value) {
+        // Save copy of key-value store to cloud
+        const { data, error } = await supabase
+          .from("photos")
+          .select("photos")
+          .eq("user_id", session?.user.id)
+          .limit(1);
+
+        if (error) {
+          console.error(error);
+          await showToast({
+            message: error.message,
+            duration: 3000,
+          });
+        }
+        value = data ? JSON.stringify(data[0].photos) : JSON.stringify([]);
+        store.set(PHOTO_STORAGE, value);
+      }
 
       const photosInStore = (value ? JSON.parse(value) : []) as UserPhoto[];
 
@@ -54,8 +76,9 @@ const PHOTO_STORAGE = `photos-usr-${session?.user?.id ?? "undefined"}`;
       setPhotos(photosInStore);
       dispatch({ type: "SET_STATE", state: { photos: photosInStore } });
     };
-    loadSaved();
-  }, [PHOTO_STORAGE, dispatch]);
+    if (!isLoading) loadSaved();
+
+  }, [PHOTO_STORAGE, dispatch, showToast, session, isLoading]);
 
   const savePicture = async (
     photo: Photo,
@@ -110,7 +133,7 @@ const PHOTO_STORAGE = `photos-usr-${session?.user?.id ?? "undefined"}`;
         });
         return photo;
       } catch (error) {
-        console.error(error)
+        console.error(error);
         await hideLoading();
         return undefined;
       }
@@ -136,6 +159,22 @@ const PHOTO_STORAGE = `photos-usr-${session?.user?.id ?? "undefined"}`;
     setPhotos(newPhotos);
     // Preferences.set({ key: PHOTO_STORAGE, value: JSON.stringify(newPhotos) });
     store.set(PHOTO_STORAGE, JSON.stringify(newPhotos));
+
+    // Save copy of key-value store to cloud
+    const { data, error } = await supabase.from("photos").upsert({
+      user_id: session?.user?.id,
+      photos: newPhotos,
+    });
+
+    if (error) {
+      console.error(error);
+      await showToast({
+        message: error.message,
+        duration: 3000,
+      });
+    }
+
+    // Update app state
     dispatch({ type: "SET_STATE", state: { photos: newPhotos } });
     await hideLoading();
   };
@@ -154,6 +193,22 @@ const PHOTO_STORAGE = `photos-usr-${session?.user?.id ?? "undefined"}`;
     setPhotos(newPhotos);
     // Preferences.set({ key: PHOTO_STORAGE, value: JSON.stringify(photos) });
     store.set(PHOTO_STORAGE, JSON.stringify(photos));
+
+    // Update copy of key-value store on cloud
+    const { data, error } = await supabase.from("photos").upsert({
+      user_id: session?.user?.id,
+      photos: photos,
+    });
+
+    if (error) {
+      console.error(error);
+      await showToast({
+        message: error.message,
+        duration: 3000,
+      });
+    }
+
+    // Update app state
     dispatch({ type: "SET_STATE", state: { photos: photos } });
   };
 
@@ -164,6 +219,20 @@ const PHOTO_STORAGE = `photos-usr-${session?.user?.id ?? "undefined"}`;
     // Update photos array cache by overwriting the existing photo array
     // Preferences.set({ key: PHOTO_STORAGE, value: JSON.stringify(newPhotos) });
     store.set(PHOTO_STORAGE, JSON.stringify(newPhotos));
+
+    // Update copy of key-value store on cloud
+    const { data, error } = await supabase.from("photos").upsert({
+      user_id: session?.user?.id,
+      photos: newPhotos,
+    });
+
+    if (error) {
+      console.error(error);
+      await showToast({
+        message: error.message,
+        duration: 3000,
+      });
+    }
 
     // Then delete photo from filesystem
     const filename = photo.filepath.substr(photo.filepath.lastIndexOf("/") + 1);
