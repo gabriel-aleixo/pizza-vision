@@ -116,7 +116,6 @@ export function usePhotoGallery() {
           .from("photos")
           .select("photos")
           .eq("user_id", session?.user.id)
-          .limit(1);
 
         if (error) {
           console.error(error);
@@ -151,7 +150,7 @@ export function usePhotoGallery() {
             }
           } catch (error) {
             // If error getting file from local filesystem, look for picture in the cloud
-            console.log("Getting file from cloud bucket", photo.filepath);
+            // console.log("Getting file from cloud bucket", photo.filepath);
             const imageData = await downloadPictureFromCloud(photo.filepath);
             photo.webviewPath = `data:image/jpeg;base64,${imageData}`;
 
@@ -257,9 +256,6 @@ export function usePhotoGallery() {
 
     // Put call to getEmbedding here, then set poto.embeddings with the result
     savedFileImage.embeddings = await getEmbeddings(savedFileImage);
-    // console.log("Embeddings: ", savedFileImage.embeddings);
-
-    // TODO We can add predictions to the Photo from here, in the future;
 
     const newPhotos = [savedFileImage, ...photos];
     setPhotos(newPhotos);
