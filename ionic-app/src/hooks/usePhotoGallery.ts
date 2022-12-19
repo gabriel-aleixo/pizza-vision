@@ -1,4 +1,4 @@
-import { useState, useEffect, useContext } from "react";
+import { useState, useEffect, useContext, useCallback } from "react";
 import { isPlatform, useIonLoading, useIonToast } from "@ionic/react";
 import {
   Camera,
@@ -34,6 +34,77 @@ export function usePhotoGallery() {
 
   const PHOTO_STORAGE = `photos-usr-${session?.user?.id ?? "undefined"}`;
 
+  const savePictureToCloud = useCallback(
+    async (base64Data: string, fileName: string): Promise<boolean> => {
+      try {
+        // Need to remove header from the string used in the app
+        const base64string = base64Data.replace(
+          /^data:image\/(png|jpeg|jpg);base64,/,
+          ""
+        );
+
+        // Convert base64-encoded ASCII string to ArrayBffer
+        const dataArray = Uint8Array.from(atob(base64string), (c) =>
+          c.charCodeAt(0)
+        );
+
+        // Upload to cloud using ArrayBuffer
+        const { data, error } = await supabase.storage
+          .from("photos")
+          .upload(
+            `${session?.user?.id ?? "undefined"}/${fileName}`,
+            dataArray,
+            {
+              contentType: "image/jpg",
+              upsert: true,
+            }
+          );
+
+        if (error) {
+          console.error(error);
+          return false;
+        }
+      } catch (error) {
+        console.error(error);
+        return false;
+      }
+      return true;
+    },
+    [session?.user?.id]
+  );
+
+  const downloadPictureFromCloud = useCallback(
+    async (fileName: string): Promise<string> => {
+      // Declare empty sring to hold binary data
+      let binary = "";
+
+      // Retrieve picture blob from cloud
+      const { data, error } = await supabase.storage
+        .from("photos")
+        .download(`${session?.user?.id ?? "undefined"}/${fileName}`);
+
+      if (error) {
+        console.error(error);
+        return window.btoa(binary);
+      }
+
+      // Conver ArrayBuffer from Blob into byte string
+      if (data?.arrayBuffer) {
+        // Create typed array of 8-bit integers with the contents of the ArrayBuffer
+        let bytes = new Uint8Array(await data?.arrayBuffer());
+        const len = bytes.byteLength;
+        // Iterate through Uint8Array and add characters UTF-16 codes to 'binary' string
+        for (let i = 0; i < len; i++) {
+          binary += String.fromCharCode(bytes[i]);
+        }
+      }
+
+      // Convert bynary string to Base64-encoded ASCII string
+      return window.btoa(binary);
+    },
+    [session?.user?.id]
+  );
+
   useEffect(() => {
     const loadSaved = async () => {
       // const { value } = await Preferences.get({ key: PHOTO_STORAGE });
@@ -41,7 +112,6 @@ export function usePhotoGallery() {
 
       // If no local copy of key-value store, look for cloud backup
       if (!value) {
-        // Save copy of key-value store to cloud
         const { data, error } = await supabase
           .from("photos")
           .select("photos")
@@ -64,21 +134,53 @@ export function usePhotoGallery() {
       // If running on web
       if (!isPlatform("hybrid")) {
         for (let photo of photosInStore) {
-          const file = await Filesystem.readFile({
-            path: photo.filepath,
-            directory: Directory.Data,
-          });
-          photo.webviewPath = `data:image/jpeg;base64,${file.data}`;
-          // getEmbeddings(photo);
-          // getPredictions(photo);
+          try {
+            // Recover picture file from local filesystem
+            const file = await Filesystem.readFile({
+              path: photo.filepath,
+              directory: Directory.Data,
+            });
+            photo.webviewPath = `data:image/jpeg;base64,${file.data}`;
+
+            // Check if photo hasn't been backeudup before
+            if (photo.cloudBackup !== true) {
+              photo.cloudBackup = await savePictureToCloud(
+                file.data,
+                photo.filepath
+              );
+            }
+          } catch (error) {
+            // If error getting file from local filesystem, look for picture in the cloud
+            console.log("Getting file from cloud bucket", photo.filepath);
+            const imageData = await downloadPictureFromCloud(photo.filepath);
+            photo.webviewPath = `data:image/jpeg;base64,${imageData}`;
+
+            // Then save to local filesystem and mark photo as backed up in local key-value store
+            Filesystem.writeFile({
+              path: photo.filepath,
+              data: imageData,
+              directory: Directory.Data,
+            }).then((response) =>
+              response.uri
+                ? (photo.cloudBackup = true)
+                : (photo.cloudBackup = false)
+            );
+          }
         }
       }
       setPhotos(photosInStore);
       dispatch({ type: "SET_STATE", state: { photos: photosInStore } });
     };
     if (!isLoading) loadSaved();
-
-  }, [PHOTO_STORAGE, dispatch, showToast, session, isLoading]);
+  }, [
+    PHOTO_STORAGE,
+    dispatch,
+    showToast,
+    session,
+    isLoading,
+    savePictureToCloud,
+    downloadPictureFromCloud,
+  ]);
 
   const savePicture = async (
     photo: Photo,
@@ -101,12 +203,15 @@ export function usePhotoGallery() {
       directory: Directory.Data,
     });
 
+    const backedUp = await savePictureToCloud(base64Data, fileName);
+
     if (isPlatform("hybrid")) {
       // Display the new image rewriting the 'file://' path to HTTP
       return {
         filepath: savedFile.uri,
         webviewPath: Capacitor.convertFileSrc(savedFile.uri),
         flag: null,
+        cloudBackup: backedUp,
         embeddings: [],
       };
     } else {
@@ -114,6 +219,7 @@ export function usePhotoGallery() {
         filepath: fileName,
         webviewPath: photo.webPath,
         flag: null,
+        cloudBackup: backedUp,
         embeddings: [],
       };
     }
@@ -240,6 +346,16 @@ export function usePhotoGallery() {
       path: filename,
       directory: Directory.Data,
     });
+
+    // Then delete from cloud
+    const { error: _error } = await supabase.storage
+      .from("photos")
+      .remove([`${session?.user?.id ?? "undefined"}/${filename}`]);
+    if (_error) {
+      console.error(_error);
+    }
+
+    // Update app state
     setPhotos(newPhotos);
     dispatch({ type: "SET_STATE", state: { photos: newPhotos } });
   };
@@ -273,6 +389,7 @@ export interface UserPhoto {
   filepath: string;
   webviewPath?: string;
   flag?: string | null;
+  cloudBackup?: boolean;
   embeddings:
     | number
     | number[]
