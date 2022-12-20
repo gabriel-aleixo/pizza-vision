@@ -6,7 +6,6 @@ import {
   IonInput,
   IonLabel,
   IonPage,
-  IonSpinner,
   IonTitle,
   IonToolbar,
   useIonToast,
@@ -16,23 +15,19 @@ import {
 import { supabase } from "../supabaseClient";
 import Context from "../Context";
 import { Redirect, useHistory } from "react-router";
-import { usePhotoGallery } from "../hooks/usePhotoGallery";
 
 // Styles
 import "./Login.css";
 
 function LoginPage() {
-  const { dispatch, session, isLoading } = useContext(Context);
-  const { photos } = usePhotoGallery();
-  // const [isLoading, setIsLoading] = useState<boolean>(false);
+  const { dispatch, session, isLoadingSession } = useContext(Context);
 
   useEffect(() => {
-    // setIsLoading(true);
 
     supabase.auth.getSession().then(({ data: { session } }) => {
       dispatch({
         type: "SET_STATE",
-        state: { session: session, isLoading: false },
+        state: { session: session, isLoadingSession: false },
       });
     });
 
@@ -40,15 +35,13 @@ function LoginPage() {
       console.log(event);
       dispatch({
         type: "SET_STATE",
-        state: { session: session, isLoading: false },
+        state: { session: session, isLoadingSession: false },
       });
     });
 
-    // dispatch({ type: "SET_STATE", state: { photos: photos } });
-    // setIsLoading(false);
   }, [dispatch]);
 
-  if (isLoading) {
+  if (isLoadingSession) {
     return <></>;
   }
 

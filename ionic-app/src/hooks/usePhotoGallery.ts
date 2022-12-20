@@ -25,7 +25,7 @@ createStorage();
 export function usePhotoGallery() {
   const [photos, setPhotos] = useState<UserPhoto[]>([]);
 
-  const { dispatch, session, isLoading } = useContext(Context);
+  const { dispatch, session, isLoadingSession } = useContext(Context);
   const { getEmbeddings } = useMobileNet();
 
   const [showLoading, hideLoading] = useIonLoading();
@@ -107,7 +107,7 @@ export function usePhotoGallery() {
 
   useEffect(() => {
     const loadSaved = async () => {
-      // const { value } = await Preferences.get({ key: PHOTO_STORAGE });
+      dispatch({ type: "SET_STATE", state: { isLoadingData: true } });
       let value = await store.get(PHOTO_STORAGE);
 
       // If no local copy of key-value store, look for cloud backup
@@ -115,7 +115,7 @@ export function usePhotoGallery() {
         const { data, error } = await supabase
           .from("photos")
           .select("photos")
-          .eq("user_id", session?.user.id)
+          .eq("user_id", session?.user.id);
 
         if (error) {
           console.error(error);
@@ -133,28 +133,35 @@ export function usePhotoGallery() {
       // If running on web
       if (!isPlatform("hybrid")) {
         for (let photo of photosInStore) {
+          console.log("Getting file: ", photo.filepath);
+          // Recover picture file from local filesystem
+          let file;
           try {
-            // Recover picture file from local filesystem
-            const file = await Filesystem.readFile({
+            file = await Filesystem.readFile({
               path: photo.filepath,
               directory: Directory.Data,
             });
+          } catch (error) {
+            console.log(error);
+          }
+
+          if (file?.data) {
             photo.webviewPath = `data:image/jpeg;base64,${file.data}`;
 
-            // Check if photo hasn't been backeudup before
+            // Check if photo hasn't been backedup before
             if (photo.cloudBackup !== true) {
               photo.cloudBackup = await savePictureToCloud(
                 file.data,
                 photo.filepath
               );
             }
-          } catch (error) {
-            // If error getting file from local filesystem, look for picture in the cloud
-            // console.log("Getting file from cloud bucket", photo.filepath);
+          } else {
+            // If can't get file from local filesystem, look for picture in the cloud
+            console.log("Getting file from cloud bucket", photo.filepath);
             const imageData = await downloadPictureFromCloud(photo.filepath);
             photo.webviewPath = `data:image/jpeg;base64,${imageData}`;
 
-            // Then save to local filesystem and mark photo as backed up in local key-value store
+            // Then save to local filesystem and mark photo as backed up for local key-value store
             Filesystem.writeFile({
               path: photo.filepath,
               data: imageData,
@@ -168,15 +175,21 @@ export function usePhotoGallery() {
         }
       }
       setPhotos(photosInStore);
-      dispatch({ type: "SET_STATE", state: { photos: photosInStore } });
+      dispatch({
+        type: "SET_STATE",
+        state: { photos: photosInStore, isLoadingData: false },
+      });
+
+      return;
     };
-    if (!isLoading) loadSaved();
+
+    if (!isLoadingSession) loadSaved();
   }, [
     PHOTO_STORAGE,
     dispatch,
     showToast,
     session,
-    isLoading,
+    isLoadingSession,
     savePictureToCloud,
     downloadPictureFromCloud,
   ]);

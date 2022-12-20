@@ -51,13 +51,13 @@ setupIonicReact();
 const App: React.FC = () => {
   // const [session, setSession] = useState<Session | null>();
 
-  const { dispatch, isLoading } = useContext(Context);
+  const { dispatch } = useContext(Context);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       dispatch({
         type: "SET_STATE",
-        state: { session: session, isLoading: false },
+        state: { session: session, isLoadingSession: false },
       });
     });
 
@@ -65,28 +65,21 @@ const App: React.FC = () => {
       console.log(event);
       dispatch({
         type: "SET_STATE",
-        state: { session: session, isLoading: false },
+        state: { session: session, isLoadingSession: false },
       });
     });
   }, [dispatch]);
 
-  if (isLoading) {
-    <IonApp>
-      <IonLoading isOpen={isLoading} duration={5000} />
-    </IonApp>
-  }
-
   return (
     <IonApp>
-        <IonReactRouter>
-          <Route path="/login" component={LoginPage} />
-          <Route path="/login/verify" component={VerifyPage} />
-          <ProtectedRoute path="/" component={ProtectedRoutes} />
-          <Route path="*">
-            <Redirect to="/login" />
-          </Route>
-        </IonReactRouter>
-        {/* <IonLoading isOpen={isLoading} duration={100} /> */}
+      <IonReactRouter>
+        <Route path="/login" component={LoginPage} />
+        <Route path="/login/verify" component={VerifyPage} />
+        <ProtectedRoute path="/" component={ProtectedRoutes} />
+        <Route path="*">
+          <Redirect to="/login" />
+        </Route>
+      </IonReactRouter>
     </IonApp>
   );
 };

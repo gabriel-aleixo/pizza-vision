@@ -8,7 +8,8 @@ interface AppState {
   email: string;
   phone: string;
   isError: boolean;
-  isLoading: boolean;
+  isLoadingSession: boolean;
+  isLoadingData: boolean;
   photos: UserPhoto[];
 }
 
@@ -18,7 +19,8 @@ const initialState: AppState = {
   email: "",
   phone: "",
   isError: false,
-  isLoading: true,
+  isLoadingSession: true,
+  isLoadingData: false,
   photos: [],
 };
 

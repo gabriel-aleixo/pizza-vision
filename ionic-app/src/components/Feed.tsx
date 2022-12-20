@@ -7,6 +7,7 @@ import {
   IonGrid,
   IonIcon,
   IonImg,
+  IonLoading,
   IonRow,
 } from "@ionic/react";
 import { camera } from "ionicons/icons";
@@ -17,7 +18,7 @@ import "./Feed.css";
 
 const Feed: React.FC = () => {
   const { takePhoto } = usePhotoGallery();
-  const { photos } = useContext(Context);
+  const { photos, isLoadingData } = useContext(Context);
   const feedContentRef = createRef<HTMLIonContentElement>();
 
   photos.sort(
@@ -28,6 +29,13 @@ const Feed: React.FC = () => {
 
   return (
     <IonContent fullscreen ref={feedContentRef}>
+      <IonLoading
+        isOpen={isLoadingData}
+        // duration={100}
+        // onDidDismiss={() => setShowLoading(false)}
+        message={"Loading pictures..."}
+      />
+
       <IonGrid>
         <IonRow>
           {photos.map((photo, index) => (
