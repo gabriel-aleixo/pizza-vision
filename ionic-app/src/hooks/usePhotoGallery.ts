@@ -23,9 +23,9 @@ const createStorage = async () => {
 createStorage();
 
 export function usePhotoGallery() {
-  const [photos, setPhotos] = useState<UserPhoto[]>([]);
+  // const [photos, setPhotos] = useState<UserPhoto[]>([]);
 
-  const { dispatch, session, isLoadingSession } = useContext(Context);
+  const { dispatch, session, isLoadingSession, photos } = useContext(Context);
   const { getEmbeddings } = useMobileNet();
 
   const [showLoading, hideLoading] = useIonLoading();
@@ -112,6 +112,7 @@ export function usePhotoGallery() {
 
       // If no local copy of key-value store, look for cloud backup
       if (!value) {
+        console.log("Getting KV from cloud")
         const { data, error } = await supabase
           .from("photos")
           .select("photos")
@@ -124,16 +125,18 @@ export function usePhotoGallery() {
             duration: 3000,
           });
         }
-        value = data ? JSON.stringify(data[0].photos) : JSON.stringify([]);
+        value = data?.length
+          ? JSON.stringify(data[0].photos)
+          : JSON.stringify([]);
         store.set(PHOTO_STORAGE, value);
       }
 
-      const photosInStore = (value ? JSON.parse(value) : []) as UserPhoto[];
+      let photosInStore = (value ? JSON.parse(value) : []) as UserPhoto[];
+      // console.log("Photos in store", photosInStore);
 
       // If running on web
       if (!isPlatform("hybrid")) {
         for (let photo of photosInStore) {
-          console.log("Getting file: ", photo.filepath);
           // Recover picture file from local filesystem
           let file;
           try {
@@ -145,6 +148,7 @@ export function usePhotoGallery() {
             console.log(error);
           }
 
+          // Web platform only: Load the photos as base64 data
           if (file?.data) {
             photo.webviewPath = `data:image/jpeg;base64,${file.data}`;
 
@@ -172,9 +176,62 @@ export function usePhotoGallery() {
                 : (photo.cloudBackup = false)
             );
           }
+          const filepath = photo.filepath;
+          photosInStore = [
+            photo,
+            ...photosInStore.filter((photo) => photo.filepath !== filepath),
+          ];
+        }
+      } else if (isPlatform("hybrid")) {
+        // TODO Recover picture file from local filesystem, if not, look for cloud, etc
+        for (let photo of photosInStore) {
+          // Check if photo can be loaded from Filesystem
+          const decodeImage = async (photo: UserPhoto): Promise<boolean> => {
+            return new Promise(async (resolve, reject) => {
+              let img = new Image();
+              img.src = photo.webviewPath ? photo.webviewPath : "";
+              img
+                .decode()
+                .then(() => {
+                  // console.log(`File ${photo.filepath} exists`);
+                  resolve(true);
+                })
+                .catch((error) => {
+                  // console.error(`Error decoding file ${photo.filepath}`);
+                  resolve(false);
+                });
+            });
+          };
+
+          if ((await decodeImage(photo)) === false) {
+            // If can't get file from local filesystem, look for picture in the cloud
+            console.log("Getting file from cloud bucket", photo.filepath);
+            const imageData = await downloadPictureFromCloud(photo.filepath);
+
+            // Then save to local filesystem and mark photo as backed up for local key-value store
+            let savedFile;
+            try {
+              savedFile = await Filesystem.writeFile({
+                path: photo.filepath,
+                data: imageData,
+                directory: Directory.Data,
+              });
+              photo.cloudBackup = true;
+              photo.webviewPath = Capacitor.convertFileSrc(savedFile.uri);
+            } catch (error) {
+              console.error(`Could not write file to Filesystem`);
+            }
+            const filepath = photo.filepath;
+            photosInStore = [
+              photo,
+              ...photosInStore.filter((photo) => photo.filepath !== filepath),
+            ];
+          }
         }
       }
-      setPhotos(photosInStore);
+      // setPhotos(photosInStore);
+      // Update app state with photos in store
+      store.set(PHOTO_STORAGE, JSON.stringify(photosInStore))
       dispatch({
         type: "SET_STATE",
         state: { photos: photosInStore, isLoadingData: false },
@@ -187,11 +244,11 @@ export function usePhotoGallery() {
   }, [
     PHOTO_STORAGE,
     dispatch,
-    showToast,
-    session,
+    downloadPictureFromCloud,
     isLoadingSession,
     savePictureToCloud,
-    downloadPictureFromCloud,
+    session?.user.id,
+    showToast,
   ]);
 
   const savePicture = async (
@@ -217,14 +274,24 @@ export function usePhotoGallery() {
 
     const backedUp = await savePictureToCloud(base64Data, fileName);
 
+    let embeddings: any = "";
+
+    try {
+      embeddings = await getEmbeddings(base64Data);
+    } catch (error) {
+      console.log(error);
+      await showToast({ message: `${error}`, duration: 3000 });
+      await hideLoading();
+    }
+
     if (isPlatform("hybrid")) {
       // Display the new image rewriting the 'file://' path to HTTP
       return {
-        filepath: savedFile.uri,
+        filepath: fileName,
         webviewPath: Capacitor.convertFileSrc(savedFile.uri),
         flag: null,
         cloudBackup: backedUp,
-        embeddings: [],
+        embeddings: embeddings,
       };
     } else {
       return {
@@ -232,13 +299,13 @@ export function usePhotoGallery() {
         webviewPath: photo.webPath,
         flag: null,
         cloudBackup: backedUp,
-        embeddings: [],
+        embeddings: embeddings,
       };
     }
   };
 
   const takePhoto = async () => {
-    await showLoading();
+    await showLoading({ message: "Processing image..." });
 
     const getPhoto = async () => {
       try {
@@ -267,11 +334,17 @@ export function usePhotoGallery() {
     const filename = new Date().getTime() + ".jpeg";
     const savedFileImage = await savePicture(photo, filename);
 
-    // Put call to getEmbedding here, then set poto.embeddings with the result
-    savedFileImage.embeddings = await getEmbeddings(savedFileImage);
+    // Call getEmbeddings then set poto.embeddings with the result
+    // getBase64 from Path only works for Web. Better to pass base64 to getEmbeddings
+    // Better to get embeddings from within savePicture func where base64 is available
+    // try {
+    //   savedFileImage.embeddings = await getEmbeddings(savedFileImage);
+    // } catch (error) {
+    //   console.error(error);
+    // }
 
     const newPhotos = [savedFileImage, ...photos];
-    setPhotos(newPhotos);
+    // setPhotos(newPhotos);
     // Preferences.set({ key: PHOTO_STORAGE, value: JSON.stringify(newPhotos) });
     store.set(PHOTO_STORAGE, JSON.stringify(newPhotos));
 
@@ -280,6 +353,9 @@ export function usePhotoGallery() {
       user_id: session?.user?.id,
       photos: newPhotos,
     });
+    //   .select("*");
+
+    // console.log(data);
 
     if (error) {
       console.error(error);
@@ -294,9 +370,11 @@ export function usePhotoGallery() {
     await hideLoading();
   };
 
-  const setFlag = async (photo: UserPhoto, e?: any) => {
+  const setFlag = async (photo: UserPhoto | undefined, e?: any) => {
     // console.log(e.target.dataset.flag);
     // console.log(photo, photo.flag);
+    if (photo === undefined) return;
+
     e.target.dataset.flag !== ""
       ? (photo.flag = e.target.dataset.flag)
       : (photo.flag = null);
@@ -305,9 +383,9 @@ export function usePhotoGallery() {
       photo,
       ...photos.filter((photo) => photo.filepath !== filepath),
     ];
-    setPhotos(newPhotos);
+    // setPhotos(newPhotos);
     // Preferences.set({ key: PHOTO_STORAGE, value: JSON.stringify(photos) });
-    store.set(PHOTO_STORAGE, JSON.stringify(photos));
+    store.set(PHOTO_STORAGE, JSON.stringify(newPhotos));
 
     // Update copy of key-value store on cloud
     const { data, error } = await supabase.from("photos").upsert({
@@ -324,10 +402,11 @@ export function usePhotoGallery() {
     }
 
     // Update app state
-    dispatch({ type: "SET_STATE", state: { photos: photos } });
+    dispatch({ type: "SET_STATE", state: { photos: newPhotos } });
   };
 
   const deletePhoto = async (photo: UserPhoto) => {
+    await showLoading();
     // Remove photo from the Photos reference array
     const newPhotos = photos.filter((p) => p.filepath !== photo.filepath);
 
@@ -365,12 +444,12 @@ export function usePhotoGallery() {
     }
 
     // Update app state
-    setPhotos(newPhotos);
+    // setPhotos(newPhotos);
     dispatch({ type: "SET_STATE", state: { photos: newPhotos } });
+    await hideLoading();
   };
 
   return {
-    photos,
     takePhoto,
     deletePhoto,
     setFlag,

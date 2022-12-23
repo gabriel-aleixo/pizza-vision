@@ -7,7 +7,7 @@ export function useMobileNet() {
   const alpha = 0.5;
 
   const getEmbeddings = async (
-    photo: UserPhoto
+    base64String: string
   ): Promise<
     | number
     | number[]
@@ -21,13 +21,19 @@ export function useMobileNet() {
     return new Promise(async (resolve, reject) => {
       const model = await mobilenet.load({ version, alpha });
 
-      if (!photo.webviewPath) {
-        console.error("No image data for embeddings");
-        return [];
-      }
-      const base64Data = await base64FromPath(photo.webviewPath);
+      // if (!photo.webviewPath) {
+      //   console.error("No image data for embeddings");
+      //   return [];
+      // }
+      // const base64Data = await base64FromPath(photo.webviewPath);
+
+      // const base64Data = base64String.replace(
+      //   /^data:image\/(png|jpeg|jpg);base64,/,
+      //   ""
+      // );
+
       const image = new Image();
-      image.src = base64Data;
+      image.src = base64String;
       image
         .decode()
         .then(async () => {
@@ -72,7 +78,11 @@ export function useMobileNet() {
   const cosineSimilarity = (vec1input: any, vec2input: any) => {
     const vec1: number[] = vec1input[0];
     const vec2: number[] = vec2input[0];
-    // console.log("Vectors are: ", vec1, vec2)
+    // console.log("Vectors are: ", vec1input, vec2input)
+
+    if (!vec1 || !vec2) {
+      return 0;
+    }
 
     const dotProduct = vec1
       .map((val, i) => val * vec2[i])

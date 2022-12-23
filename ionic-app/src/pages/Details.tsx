@@ -19,18 +19,13 @@ import {
   IonGrid,
   IonCol,
   IonRow,
+  isPlatform,
 } from "@ionic/react";
 import Context from "../Context";
 import { RouteComponentProps, useHistory } from "react-router";
 import { usePhotoGallery, UserPhoto } from "../hooks/usePhotoGallery";
 import { useMobileNet } from "../hooks/useMobileNet";
-import {
-  close,
-  ellipsisHorizontal,
-  thumbsDown,
-  thumbsUp,
-  trash,
-} from "ionicons/icons";
+import { trash } from "ionicons/icons";
 
 import "./Details.css";
 
@@ -53,14 +48,33 @@ const Details: React.FC<DetailsProps> = ({ match }) => {
     match.url.split("/")[1].slice(1);
 
   const filename = match.params.filename;
+  // console.log("Match", match);
 
-  const selectedPhoto = photos.find(
+  const selectedPhoto: UserPhoto | undefined = photos.find(
     (photo) => photo.filepath === filename + ".jpeg"
   );
 
-  const otherPhotos = photos.filter(
+  // console.log("Selected Photo", selectedPhoto);
+
+  const otherPhotos: UserPhoto[] = photos.filter(
     (photo) => photo.filepath !== filename + ".jpeg"
   );
+
+  // const findPhoto = (photo: UserPhoto) => {
+  //   return (
+  //     photo.filepath.substring(photo.filepath.lastIndexOf("/")) ===
+  //     `/${filename}.jpeg`
+  //   );
+  // };
+
+  // if (isPlatform("hybrid")) {
+  //   selectedPhoto = photos.find((photo) => findPhoto(photo));
+
+  //   otherPhotos = photos.filter((photo) => findPhoto(photo));
+  // } else {
+    // selectedPhoto 
+    // otherPhotos;
+  // }
 
   interface SimilarPhoto extends UserPhoto {
     sim?: number;
@@ -68,10 +82,11 @@ const Details: React.FC<DetailsProps> = ({ match }) => {
 
   let similarPhotos: SimilarPhoto[] = [];
 
-  if (selectedPhoto && selectedPhoto.embeddings != undefined) {
+  if (selectedPhoto && selectedPhoto.embeddings && otherPhotos !== undefined) {
+
     similarPhotos = otherPhotos.map((photo) => {
       let sim: number = cosineSimilarity(
-        selectedPhoto.embeddings,
+        selectedPhoto?.embeddings,
         photo.embeddings
       );
       let photoWithSim: SimilarPhoto = photo;
@@ -82,7 +97,6 @@ const Details: React.FC<DetailsProps> = ({ match }) => {
 
   const filterSimPhotos = (photo: SimilarPhoto) => {
     if (photo.sim && photo.sim > 0.6) {
-      // console.log(photo.sim);
       return true;
     }
     return false;
@@ -113,7 +127,7 @@ const Details: React.FC<DetailsProps> = ({ match }) => {
         </IonToolbar>
       </IonHeader>
       <IonContent>
-        {selectedPhoto ? (
+        {selectedPhoto !== undefined ? (
           <>
             <IonImg
               className="detail-main-image"
@@ -213,9 +227,9 @@ const Details: React.FC<DetailsProps> = ({ match }) => {
             {
               text: "Delete",
               role: "destructive",
-              handler: () => {
+              handler: async () => {
                 if (photoToDelete) {
-                  deletePhoto(photoToDelete);
+                  await deletePhoto(photoToDelete);
                   setPhotoToDelete(undefined);
                   history.goBack();
                 }

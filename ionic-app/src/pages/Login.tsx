@@ -71,7 +71,6 @@ function LoginField() {
   const history = useHistory();
 
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
-    console.log();
     e.preventDefault();
     await showLoading();
     const { data, error } = await supabase.auth.signInWithOtp({ email: email });

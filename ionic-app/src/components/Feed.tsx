@@ -9,6 +9,7 @@ import {
   IonImg,
   IonLoading,
   IonRow,
+  isPlatform,
 } from "@ionic/react";
 import { camera } from "ionicons/icons";
 import { createRef, useContext } from "react";
@@ -33,7 +34,7 @@ const Feed: React.FC = () => {
         isOpen={isLoadingData}
         // duration={100}
         // onDidDismiss={() => setShowLoading(false)}
-        message={"Loading pictures..."}
+        message={"Loading data..."}
       />
 
       <IonGrid>

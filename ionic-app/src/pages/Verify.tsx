@@ -18,14 +18,13 @@ import {
 import { supabase } from "../supabaseClient";
 import Context from "../Context";
 import { Redirect, useHistory } from "react-router";
-import { usePhotoGallery } from "../hooks/usePhotoGallery";
+// import { usePhotoGallery } from "../hooks/usePhotoGallery";
 
 // Styles
 import "./Verify.css";
 
 function VerifyPage() {
-  const { dispatch, session, email } = useContext(Context);
-  const { photos } = usePhotoGallery();
+  const { dispatch, session, email, photos } = useContext(Context);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const history = useHistory();
 
