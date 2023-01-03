@@ -441,6 +441,11 @@ export function usePhotoGallery() {
       .remove([`${session?.user?.id ?? "undefined"}/${filename}`]);
     if (_error) {
       console.error(_error);
+      await showToast({
+        message: _error.message,
+        duration: 3000,
+      });
+
     }
 
     // Update app state

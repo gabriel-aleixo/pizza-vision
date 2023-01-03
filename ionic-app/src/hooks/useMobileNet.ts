@@ -32,8 +32,11 @@ export function useMobileNet() {
       //   ""
       // );
 
+
       const image = new Image();
-      image.src = base64String;
+
+      // base64 string must be turned into Data URL, with 'data:' prefix
+      image.src = "data:image/jpeg;base64," + base64String;
       image
         .decode()
         .then(async () => {
