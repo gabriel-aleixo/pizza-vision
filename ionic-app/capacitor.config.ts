@@ -1,10 +1,13 @@
 import { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'io.ionic.starter',
-  appName: 'ionic-app',
+  appId: 'com.alaysho.pizzavision.ionic',
+  appName: 'PizzaVision',
   webDir: 'build',
-  bundledWebRuntime: false
+  bundledWebRuntime: false,
+  ios: {
+    scheme: 'PizzaVision'
+  }
 };
 
 export default config;

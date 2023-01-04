@@ -5,7 +5,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
 	<key>CFBundleDisplayName</key>
-	<string>ionic-app</string>
+	<string>PizzaVision</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -23,11 +23,11 @@
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSCameraUsageDescription</key>
-	<string>Tot take photos of products</string>
+	<string>To Take Photos of Products</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
-	<string>To add photos to library</string>
+	<string>To Add Photos to Library</string>
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string>To select photos from library</string>
+	<string>To Access Photos from Library</string>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
 	<key>UIMainStoryboardFile</key>
