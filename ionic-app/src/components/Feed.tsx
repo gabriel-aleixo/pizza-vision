@@ -9,7 +9,6 @@ import {
   IonImg,
   IonLoading,
   IonRow,
-  isPlatform,
 } from "@ionic/react";
 import { camera } from "ionicons/icons";
 import { createRef, useContext } from "react";
@@ -36,34 +35,55 @@ const Feed: React.FC = () => {
         // onDidDismiss={() => setShowLoading(false)}
         message={"Loading data..."}
       />
-
-      <IonGrid>
-        <IonRow>
-          {photos.map((photo, index) => (
-            <IonCol size="12" key={index}>
-              <IonCard
-                className="photo-card"
-                button
-                routerLink={
-                  "/feed/details/" +
-                  photo.filepath.substring(0, photo.filepath.lastIndexOf("."))
-                }
-              >
-                <IonImg src={photo.webviewPath} />
-                {!photo.flag ? (
-                  <>
-                    <h2 className="photo-flag">🤷</h2>
-                  </>
-                ) : (
-                  <h2 className="photo-flag">
-                    {photo.flag === "yes" ? <>👍</> : <>👎</>}
-                  </h2>
-                )}
-              </IonCard>
-            </IonCol>
-          ))}
-        </IonRow>
-      </IonGrid>
+      {photos.length > 0 ? (
+        <IonGrid>
+          <IonRow>
+            {photos.map((photo, index) => (
+              <IonCol size="12" key={index}>
+                <IonCard
+                  className="photo-card"
+                  button
+                  routerLink={
+                    "/feed/details/" +
+                    photo.filepath.substring(0, photo.filepath.lastIndexOf("."))
+                  }
+                >
+                  <IonImg src={photo.webviewPath} />
+                  {!photo.flag ? (
+                    <>
+                      <h2 className="photo-flag">🤷</h2>
+                    </>
+                  ) : (
+                    <h2 className="photo-flag">
+                      {photo.flag === "yes" ? <>👍</> : <>👎</>}
+                    </h2>
+                  )}
+                </IonCard>
+              </IonCol>
+            ))}
+          </IonRow>
+        </IonGrid>
+      ) : (
+        <div className="ion-padding">
+          <h1>Hi there 👋</h1>
+          <p>
+            Use the <IonIcon icon={camera} /> button below to take photos of the
+            products you try.
+          </p>
+          <p>Open the photo to mark it as 👍 or 👎.</p>
+          <p>
+            When you open a photo, the app shows other{" "}
+            <strong>similar pictures</strong> from your library.
+          </p>
+          <p>
+            You can use your camera to check if you had a product before, and
+            wether you liked it or not. 🤯
+          </p>
+          <p>
+            <strong>Never buy the same bad frozen pizza twice again!</strong>
+          </p>
+        </div>
+      )}
 
       <IonFab vertical="bottom" horizontal="center" slot="fixed">
         <IonFabButton

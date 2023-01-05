@@ -74,7 +74,7 @@ function VerifyPage() {
         {isLoading ? <IonSpinner /> : <OtpField />}
         <div className="ion-text-center ion-padding">
           <IonButton
-          color={"warning"}
+            color={"warning"}
             type="button"
             expand="block"
             onClick={() => handleCancel()}
@@ -117,7 +117,7 @@ function OtpField() {
     setOtp("");
     dispatch({
       type: "SET_STATE",
-      state: { user: data.user, session: data.session },
+      state: { user: data.user, session: data.session, photos: [] },
     });
     await hideLoading();
   };
@@ -127,21 +127,26 @@ function OtpField() {
       <div className="ion-padding">
         <h1>Login</h1>
         <p>Now enter the code we sent you via email.</p>
-        <p>If you haven't received it yet, give it a minute and check you spam folder.</p>
+        <p>
+          If you haven't received it yet, give it a minute and check your spam
+          folder.
+        </p>
       </div>
       <form className="ion-padding" onSubmit={handleVerifyOtp}>
         <IonLabel position="stacked">Code*</IonLabel>
         <IonInput
-        className="ion-text-center"
-        clearInput={true}
-        placeholder="_ _ _ _ _ _"
+          className="ion-text-center"
+          clearInput={true}
+          placeholder="_ _ _ _ _ _"
           required
           value={otp}
           name="otp"
           onIonChange={(e) => setOtp(e.detail.value ?? "")}
           type="number"
         />
-        <IonNote slot="helper">*It's a 6 numbers code, and it's required</IonNote>
+        <IonNote slot="helper">
+          *It's a 6 numbers code, and it's required
+        </IonNote>
         <div className="ion-text-center ion-padding-top">
           <IonButton expand="block" type="submit">
             Login

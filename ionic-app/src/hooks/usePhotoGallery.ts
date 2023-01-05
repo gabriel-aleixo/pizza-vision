@@ -9,6 +9,7 @@ import {
 import { Filesystem, Directory } from "@capacitor/filesystem";
 // import { Preferences } from "@capacitor/preferences";
 import { Storage } from "@ionic/storage";
+import { Session } from "@supabase/supabase-js";
 import { supabase } from "../supabaseClient";
 import { Capacitor } from "@capacitor/core";
 import Context from "../Context";
@@ -112,7 +113,7 @@ export function usePhotoGallery() {
 
       // If no local copy of key-value store, look for cloud backup
       if (!value) {
-        console.log("Getting KV from cloud")
+        console.log("Getting KV from cloud");
         const { data, error } = await supabase
           .from("photos")
           .select("photos")
@@ -231,7 +232,7 @@ export function usePhotoGallery() {
       }
       // setPhotos(photosInStore);
       // Update app state with photos in store
-      store.set(PHOTO_STORAGE, JSON.stringify(photosInStore))
+      store.set(PHOTO_STORAGE, JSON.stringify(photosInStore));
       dispatch({
         type: "SET_STATE",
         state: { photos: photosInStore, isLoadingData: false },
@@ -388,18 +389,7 @@ export function usePhotoGallery() {
     store.set(PHOTO_STORAGE, JSON.stringify(newPhotos));
 
     // Update copy of key-value store on cloud
-    const { data, error } = await supabase.from("photos").upsert({
-      user_id: session?.user?.id,
-      photos: photos,
-    });
-
-    if (error) {
-      console.error(error);
-      await showToast({
-        message: error.message,
-        duration: 3000,
-      });
-    }
+    updateCloudKVStore(session, newPhotos);
 
     // Update app state
     dispatch({ type: "SET_STATE", state: { photos: newPhotos } });
@@ -415,18 +405,7 @@ export function usePhotoGallery() {
     store.set(PHOTO_STORAGE, JSON.stringify(newPhotos));
 
     // Update copy of key-value store on cloud
-    const { data, error } = await supabase.from("photos").upsert({
-      user_id: session?.user?.id,
-      photos: newPhotos,
-    });
-
-    if (error) {
-      console.error(error);
-      await showToast({
-        message: error.message,
-        duration: 3000,
-      });
-    }
+    updateCloudKVStore(session, newPhotos);
 
     // Then delete photo from filesystem
     const filename = photo.filepath.substr(photo.filepath.lastIndexOf("/") + 1);
@@ -445,7 +424,6 @@ export function usePhotoGallery() {
         message: _error.message,
         duration: 3000,
       });
-
     }
 
     // Update app state
@@ -459,6 +437,23 @@ export function usePhotoGallery() {
     deletePhoto,
     setFlag,
   };
+}
+
+export async function updateCloudKVStore(
+  session: Session | null,
+  values: UserPhoto[]
+) {
+  const { data, error } = await supabase.from("photos").upsert({
+    user_id: session?.user?.id,
+    photos: values,
+  });
+
+  if (error) {
+    console.error(error);
+    return error;
+  }
+
+  return 0;
 }
 
 export async function base64FromPath(path: string): Promise<string> {
