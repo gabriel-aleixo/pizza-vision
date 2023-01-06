@@ -37,11 +37,17 @@ That last part ended up meaning tackling a funny and silly problem affecting the
 
 #### So many frozen pizzas 😨
 
-It may seem silly, but it's very hard to keep track of diff
+It may seem silly, but it's very hard to keep track of all the different brands and types of frozen pizza we eat. More often than we liked, we ended up buyiong the same brand just to realise that we had it before and it wasn't that great. Something needed to be done about it!
 
 #### Scrambling through imperfect methods
 
-Shared Google Photos album, Notion page... coming soon.
+We started by creating a shared album on Google Photos. We'd take a picture with our phones, manually write Yes or No on to of it, and add to the album.
+
+Can you believe the amount of work??! Not to mention that finding a specific product in this album was nightmare... 
+
+We thought about keeping a list with the brands, names, etc. This would be easy to search and share, but again, so much work...
+
+We just wanted an easy way to remember and quickly check the products we liked, particularly at the supermarket.
 
 #### Only Pizza, really?
 
@@ -67,8 +73,7 @@ TODO
 
 #### Backend
 
-- [Supabase](https://supabase.com/docs): relational database (PostgreSQL), Auth, object storage, basic CRUD API, realtime API (which is really cool). Very easy to set-up, growing community, based on open source software, strong row-level security built-in, free tier available.
-- TODO: currently the images are only store in the local storage, but the plan is to sync the data with the Supabase database and retrieve it in case the use uninstalls the app and wants to install again.
+- [Supabase](https://supabase.com/docs): relational database (PostgreSQL), Auth, object storage, basic CRUD API, realtime API (which is really cool). Very easy to set-up, growing community, based on open source software, strong row-level security built-in, free tier available. I'm also leveraging Supabase Storage to sync the user's pictures to the cloud. This way, if you uninstall the app, your data is kept in the cloud.
 
 ### Features
 
@@ -81,16 +86,12 @@ TODO
 - Display all similar images for the selected picture. Results ordered by image similarity
 - Libray view ordered by date taken
 - Filter library by 👍 and 👎 tags
+- Sync local images with cloud
 
 ## TODO
 
 - Implement infinite scroll on the home feed
-- Implement optional login with email or auth providers
-- Sync local images with cloud
-- Add account management options: change email, password, avatar, delete account
-- Manage loading state while photos are being loaded
-- Resize uploaded photos for performance
-- Improve overall look and feel
+- Add account management options: change email, delete account
 
 ## FAQs
 
