@@ -312,7 +312,7 @@ export function usePhotoGallery() {
       try {
         const photo = await Camera.getPhoto({
           resultType: CameraResultType.Uri,
-          source: CameraSource.Camera,
+          // source: CameraSource.Camera,
           quality: 50,
           width: 600,
           height: 600,
