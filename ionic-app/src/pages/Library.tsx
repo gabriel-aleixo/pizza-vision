@@ -54,7 +54,13 @@ const Library: React.FC = () => {
         </IonToolbar>
       </IonHeader>
       <IonContent>
-        <PhotosElement {...PhotosElementProps} />
+        {!photos.length ? (
+          <div className="ion-padding">
+            <p>Take your first photo by going to the Feed tab</p>
+            </div>
+        ) : (
+          <PhotosElement {...PhotosElementProps} />
+        )}
       </IonContent>
     </IonPage>
   );
