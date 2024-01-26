@@ -1,6 +1,6 @@
 # PizzaVision
 
-> I bought the same terible brand of frozen pizza twice 😖 and vouched to never let that happen again to others!  🥶🍕🙌
+> I bought the same terible brand of frozen pizza twice 😖 and vouched to never let that happen again to me or anyone else!  🥶🍕🙌
 
 ## Introduction
 
@@ -14,9 +14,9 @@ The next time you are in the store and can't remember if you already had or like
 
 ## Description
 
-There are way too many products in the grocery store, but few categories are more cluttered than frozen pizza. They all look the same, with  italian-sounding names,  nice pictures of red ripe tomatoes, fresh basil, and melted cheese.
+There are way too many products in the grocery store, but few categories are more cluttered than frozen pizza. They all look the same, with  Italian-sounding names,  nice pictures of red ripe tomatoes, fresh basil, and melted cheese.
 
-Despite their nice appearance, very few frozen pizzas are worth buying! We know good frozen pizza from bad frozen pizza when we eat it, right?
+Despite their nice appearance, very few frozen pizzas are worth their price! We know good frozen pizza from bad frozen pizza when we eat it, right?
 
 How can we remember and keep track of the ones we bought before and liked, versus the ones we should stay away from?
 
@@ -30,14 +30,32 @@ The next time you're in the supermarket, and you can't remember if you had that 
 
 This is my final project for the Harvard CS50x course. I wanted to build something that would allow me to learn and use new technologies, go through all the step of planning, designing and building a product, and at the same, tackle a consequential and meaningful challenge affecting the lives of millions of people.
 
-I succeeded in my goal of learning new tools and skills. The part about the consequential challenge had to be postponed to a future project. But hey, I solved my problem!
+I succeeded in my goal of learning new tools and skills. The part about the consequential challenge had to be postponed for a future project. But hey, I solved my problem!
 
 ## Installation
 
+### Clone the repository
 - ``git clone``
 - ``cd pizza-vision\ionic-app``
 - ``npm i``
+
+### Supabase
+- If you haven't used Supabase before, go to [supabase.com](https://supabase.com) and sign up for a free account
+- Create a new project in your account called "pizza-vision" or any other name you like
+
+### Run Supabase locally
+
+- Install the [Supabase CLI](https://supabase.com/docs/guides/cli/getting-started)
+(do not run ``supabase init`` as the supabase folder is already included in the repository)
+- ``supabase link`` and chose the project you created
+
+
+
+### Run the code
+
 - ``npm run start``
+
+TODO explain how to replicate the backend in a Supabase project
 
 ## Tech Stack
 
