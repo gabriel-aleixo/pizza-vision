@@ -1,105 +1,102 @@
 # PizzaVision
 
-> I bought the same terible brand of frozen pizza twice 😖 and vouched to never let that happen again to me or anyone else!  🥶🍕🙌
+>I accidentally bought the same terrible frozen pizza brand twice 😖 and vowed never to let that happen again to me or anyone else! 🥶🍕🙌
 
 ## Introduction
 
-PizzaVision is a mobile app that lets you take pictures of the packages of the products you buy, and tag them as either "👍" or "👎".
+PizzaVision is a cross-platform mobile app where you can snap pictures of product packages and tag them as either "👍" or "👎".
 
-The next time you are in the store and can't remember if you already had or liked a certain product - a surprisingly common problem! - just take snapshot of the packaging and the app will search all your product photos and show the similar ones you had in the past.
+Forget if you've tried a product before? Just snap a pic of the packaging, and the app will search your photos and show similar ones you've had in the past.
 
-### Video Demo: [PizzaVision Video Demo](https://youtu.be/UvWqgWUDMGE)
+**Download** [PizzaVision on the App Store](https://apps.apple.com/us/app/pizzavision/id1662732466)
 
-### Live Demo: [pizzavision.onrender.com](https://pizzavision.onrender.com/)
+**Live Demo** [PizzaVision Web App](https://pizzavision.onrender.com/)
+
+(Android version to come)
 
 ## Description
 
-There are way too many products in the grocery store, but few categories are more cluttered than frozen pizza. They all look the same, with  Italian-sounding names,  nice pictures of red ripe tomatoes, fresh basil, and melted cheese.
+With so many products in stores, frozen pizza stands out as one of the most cluttered category. They all look alike with Italian-sounding names and picturesque images, but few are worth their price.
 
-Despite their nice appearance, very few frozen pizzas are worth their price! We know good frozen pizza from bad frozen pizza when we eat it, right?
+How do we remember which ones we've liked and which to avoid?
 
-How can we remember and keep track of the ones we bought before and liked, versus the ones we should stay away from?
-
-**I built PizzaVision to solve this existential problem in my life.**
-
-You simply take a snapshot of a pizza or any other product's packaging and select "👍" or "👎" to indicate whether you would buy it again or not.
-
-The next time you're in the supermarket, and you can't remember if you had that particular product before, just take a snapshot of the package and the app will show you all the similar products you had, which ones were "Yesses", and which ones were "Nos".
+Enter **PizzaVision**: snap a pic of the package, tag it "👍" or "👎", and never forget your preferences again.
 
 ## Motivation
 
-This is my final project for the Harvard CS50x course. I wanted to build something that would allow me to learn and use new technologies, go through all the step of planning, designing and building a product, and at the same, tackle a consequential and meaningful challenge affecting the lives of millions of people.
+As my final project for the [Harvard CS50x course](https://pll.harvard.edu/course/cs50-introduction-computer-science), I wanted to learn new technologies and hone my product developement skills, while tackling a meaningfull problem for society.
 
-I succeeded in my goal of learning new tools and skills. The part about the consequential challenge had to be postponed for a future project. But hey, I solved my problem!
+PizzaVision allowed me to learn new technologies, particularly mobile development and computer vision, by tackling a common problem: remembering product preferences.
+
+While I had postpone the broader societal impact bits, I certainly solved my own problem!
 
 ## Installation
 
 ### Clone the repository
+
 - ``git clone``
 - ``cd pizza-vision\ionic-app``
 - ``npm i``
 
 ### Supabase
-- If you haven't used Supabase before, go to [supabase.com](https://supabase.com) and sign up for a free account
-- Create a new project in your account called "pizza-vision" or any other name you like
 
-### Run Supabase locally
+You don't need to sign up for a Supabase account to run this code locally. Just run Supabase locally on your machine.
 
-- Install the [Supabase CLI](https://supabase.com/docs/guides/cli/getting-started)
-(do not run ``supabase init`` as the supabase folder is already included in the repository)
-- ``supabase link`` and chose the project you created
+#### Run Supabase locally
 
+- Install the [Supabase CLI](https://supabase.com/docs/guides/cli/getting-started), along with Docker.
+- Skip ``supabase init`` as the supabase folder is included.
+- ``supabase start``
 
+#### Deploy to Supabase platform
 
-### Run the code
+This project doesn't allow direct collaboration on backend code yet, but you can deploy to your own Supabase project.
 
-- ``npm run start``
+More details [here](https://supabase.com/docs/guides/cli/local-development)
 
-TODO explain how to replicate the backend in a Supabase project
+### Run the App
+
+- ``npm run start`` from the ionic-app directory
 
 ## Tech Stack
 
 ### Frontend
 
-- [Ionic](https://ionicframework.com/docs/react): cross-platform mature framework, large community support, many available plugins to interact with mobile platform features, UI components built in, familiar development experience using HTML, CSS and JavaScript.
-- [Capacitor](https://capacitorjs.com/docs): the cross-platform runtime on top of which the Ionic app runs. Capacitor is mainly providing access to filesystem, camera and localstorage for the app.
-- React: well supported and integrated with Ionic, extremely mature and popular.
-- [@tensorflow/tfjs](https://www.tensorflow.org/js/tutorials/setup?hl=en) with the [@tensorflow-models/mobilenet](https://www.npmjs.com/package/@tensorflow-models/mobilenet) for the computer vision bits. [Mobilenet](https://github.com/tensorflow/tfjs-models/tree/master/mobilenet) is a small, low-latency and low-power model that can extract embeddings and and provide image classification. It is particularly adapted for use in mobile apps, and it is providing image vectors in this app, which are used to calculate image similarity.
-- Thanks to this simple Cosine Similarity function by [Tomer Gabbai](https://gist.github.com/tomericco/14b5ceac90d6eed6f9ba6cb5305f8fab), we estimate image similarity on the fly. In the future, I would be straightforward to let the user select the sensitivity of the similarity results they see.
+- [Ionic](https://ionicframework.com/docs/react): mature framework with large community support.
+- [Capacitor](https://capacitorjs.com/docs): cross-platform runtime for accessing mobile features.
+- [React](https://react.dev/): popular library well integrated with Ionic.
+- [@tensorflow/tfjs](https://www.tensorflow.org/js/tutorials/setup?hl=en) with [@tensorflow-models/mobilenet](https://www.npmjs.com/package/@tensorflow-models/mobilenet).
 
 ### Backend
 
-- [Supabase](https://supabase.com/docs): relational database (PostgreSQL), Auth, object storage, basic CRUD API, realtime API (which is really cool). Very easy to set-up, growing community, based on open source software, strong row-level security built-in, free tier available. I'm also leveraging Supabase Storage to sync the user's pictures to the cloud. This way, if you uninstall the app, your data is kept in the cloud.
+- [Supabase](https://supabase.com/docs): relational database, Auth, object storage, basic CRUD API, realtime API.
 
 ## Features
 
-- User authentication via one time password with phone number
-- Basic user profile management (name, website)
-- Take pictures with your phone's camera
-- Upload picture from your phone's photo library
-- Tag a picture as 👍 or 👎
-- Tap an existing picture to change its tag or remove from the library
-- Display all similar images for the selected picture. Results ordered by image similarity
-- Libray view ordered by date taken
-- Filter library by 👍 and 👎 tags
-- Sync local images with cloud
+- User authentication via one-time password with email.
+- Basic user profile management.
+- Snap pictures with the phone's camera.
+- Upload directly from the camera or from the phone's photo library.
+- Tag pictures as "👍" or "👎".
+- View similar images ordered by degree of similarity.
+- Library view ordered by date taken.
+- Filter library by tags.
+- Sync local images with cloud.
 
 ## TODO
 
-- Implement infinite scroll on the home feed
-- Add account management options: change email, delete account
-
-## FAQs
-
-TODO
+- Implement infinite scroll on home feed.
+- Add account management options.
+- Image optimization.
+- Library sharing.
+- Automatically classify images using Mobilenet.
+- Filter and reorder library view.
 
 ## References
 
-- https://ionicframework.com/docs/react/your-first-app
-- https://github.com/tensorflow/tfjs-models/tree/master/mobilenet
-
-- https://blog.devgenius.io/mobile-development-with-react-native-or-ionic-a9ea855749f6
-- https://towardsdatascience.com/image-similarity-with-deep-learning-c17d83068f59
-
-- https://supabase.com/docs/guides/with-ionic-react
-- https://ionic.io/blog/choosing-a-data-storage-solution-ionic-storage-capacitor-storage-sqlite-or-ionic-secure-storage
+- [Ionic Framework Docs](https://ionicframework.com/docs/react/your-first-app)
+- [TensorFlow Models Mobilenet](https://github.com/tensorflow/tfjs-models/tree/master/mobilenet)
+- [Mobile Development with React Native or Ionic](https://blog.devgenius.io/mobile-development-with-react-native-or-ionic-a9ea855749f6)
+- [Image Similarity with Deep Learning](https://towardsdatascience.com/image-similarity-with-deep-learning-c17d83068f59)
+- [Supabase Docs](https://supabase.com/docs/guides/with-ionic-react)
+- [Choosing a Data Storage Solution](https://ionic.io/blog/choosing-a-data-storage-solution-ionic-storage-capacitor-storage-sqlite-or-ionic-secure-storage)
