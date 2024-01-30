@@ -6,6 +6,12 @@ export function useMobileNet() {
   const version = 2;
   const alpha = 0.5;
 
+  /**
+   * Converts base64 ASCII string into HTMLImageElement,
+   * and passes it to mobilenet model to get embeddings
+   * @param base64String The base64 string
+   * @returns Array(1280) with image embeddings
+   */
   const getEmbeddings = async (
     base64String: string
   ): Promise<
@@ -17,7 +23,6 @@ export function useMobileNet() {
     | number[][][][][]
     | number[][][][][][]
   > => {
-
     return new Promise(async (resolve, reject) => {
       const model = await mobilenet.load({ version, alpha });
 
@@ -32,11 +37,9 @@ export function useMobileNet() {
       //   ""
       // );
 
-
       const image = new Image();
+      image.src = base64String;
 
-      // base64 string must be turned into Data URL, with 'data:' prefix
-      image.src = "data:image/jpeg;base64," + base64String;
       image
         .decode()
         .then(async () => {
@@ -52,32 +55,33 @@ export function useMobileNet() {
     });
   };
 
-  const getPredictions = async (photo: UserPhoto): Promise<{}[]> => {
+  const getPredictions = async (base64String: string): Promise<{}[]> => {
     return new Promise(async (resolve, reject) => {
-        const model = await mobilenet.load({ version, alpha });
-  
-        if (!photo.webviewPath) {
-          console.error("No image data for embeddings");
-          return [];
-        }
-        const base64Data = await base64FromPath(photo.webviewPath);
-        const image = new Image();
-        image.src = base64Data;
-        image
-          .decode()
-          .then(async () => {
-            const predictions = model.classify(image, 10);
-            console.log(predictions);
-            resolve(predictions);
-          })
-          .catch((error) => {
-            console.error("Error encoding image: ", error);
-            reject(error);
-          });
-      });
-  
+      const model = await mobilenet.load({ version, alpha });
+
+
+      const image = new Image();
+      image.src = base64String;
+      image
+        .decode()
+        .then(async () => {
+          const predictions = model.classify(image, 5);
+          // console.log(predictions);
+          resolve(predictions);
+        })
+        .catch((error) => {
+          console.error("Error encoding image: ", error);
+          reject(error);
+        });
+    });
   };
 
+  /**
+   * Calculates cosine distance of two vectors
+   * @param vec1input 
+   * @param vec2input 
+   * @returns 
+   */
   const cosineSimilarity = (vec1input: any, vec2input: any) => {
     const vec1: number[] = vec1input[0];
     const vec2: number[] = vec2input[0];

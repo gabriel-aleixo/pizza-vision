@@ -67,7 +67,7 @@ const Feed: React.FC = () => {
         <div className="ion-padding">
           <h1>Hi there 👋</h1>
           <p>
-            Use the <IonIcon icon={camera} /> button below to take a photo of a
+            Use the <IonIcon icon={camera} /> button to take a photo of a
             product (clear, frontal pictures of the packaging work best).
           </p>
           <p>Tap the photo to mark it as 👍 or 👎.</p>
@@ -76,7 +76,7 @@ const Feed: React.FC = () => {
             <strong>similar pictures</strong> from your library.
           </p>
           <p>
-            This way, you can use your phone's camera to check wether you tried
+            You can use your phone's camera to remember if you tried
             a product before, and if you liked it or not. 🤯
           </p>
           <p>

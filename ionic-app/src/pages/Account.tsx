@@ -19,7 +19,6 @@ import { supabase } from "../supabaseClient";
 // import { Session } from "@supabase/gotrue-js/src/lib/types";
 
 function AccountPage() {
-  //   const [showLoading, hideLoading] = useIonLoading();
   const [showToast] = useIonToast();
   const router = useIonRouter();
   const [showLoading, setShowLoading] = useState<boolean>(false);
@@ -64,7 +63,6 @@ function AccountPage() {
       } catch (error: any) {
         showToast({ message: error.message, duration: 5000 });
       } finally {
-        //   hideLoading();
         setShowLoading(false);
       }
     };
@@ -80,7 +78,6 @@ function AccountPage() {
     e?.preventDefault();
 
     console.log("update ");
-    // await showLoading();
     setShowLoading(true);
 
     try {

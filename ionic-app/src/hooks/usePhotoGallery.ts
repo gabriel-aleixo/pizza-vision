@@ -1,5 +1,10 @@
-import { useState, useEffect, useContext, useCallback } from "react";
-import { isPlatform, useIonLoading, useIonToast } from "@ionic/react";
+import { useEffect, useContext } from "react";
+import {
+  isPlatform,
+  getPlatforms,
+  useIonLoading,
+  useIonToast,
+} from "@ionic/react";
 import {
   Camera,
   CameraResultType,
@@ -9,12 +14,14 @@ import {
 import { Filesystem, Directory } from "@capacitor/filesystem";
 // import { Preferences } from "@capacitor/preferences";
 import { Storage } from "@ionic/storage";
-import { Session } from "@supabase/supabase-js";
+// import { Session } from "@supabase/supabase-js";
 import { supabase } from "../supabaseClient";
 import { Capacitor } from "@capacitor/core";
 import Context from "../Context";
 import { useMobileNet } from "./useMobileNet";
+import { useCloudSync } from "./useCloudSync";
 
+// Create instance of Ionic KV Storage in browser/storage/indexDB/_ionickv
 const store = new Storage();
 
 const createStorage = async () => {
@@ -23,90 +30,32 @@ const createStorage = async () => {
 };
 createStorage();
 
+/**
+ * Photo Gallery Hook
+ * @returns
+ */
 export function usePhotoGallery() {
   // const [photos, setPhotos] = useState<UserPhoto[]>([]);
 
   const { dispatch, session, isLoadingSession, photos } = useContext(Context);
   const { getEmbeddings } = useMobileNet();
+  const { getPredictions } = useMobileNet();
+  const { savePictureToCloud } = useCloudSync();
+  const { downloadPictureFromCloud } = useCloudSync();
+  const { updateCloudKVStore } = useCloudSync();
 
   const [showLoading, hideLoading] = useIonLoading();
 
   const [showToast] = useIonToast();
 
+  // Name KV photo storage using user id from supabase
   const PHOTO_STORAGE = `photos-usr-${session?.user?.id ?? "undefined"}`;
 
-  const savePictureToCloud = useCallback(
-    async (base64Data: string, fileName: string): Promise<boolean> => {
-      try {
-        // Need to remove header from the string used in the app
-        const base64string = base64Data.replace(
-          /^data:image\/(png|jpeg|jpg);base64,/,
-          ""
-        );
-
-        // Convert base64-encoded ASCII string to ArrayBffer
-        const dataArray = Uint8Array.from(atob(base64string), (c) =>
-          c.charCodeAt(0)
-        );
-
-        // Upload to cloud using ArrayBuffer
-        const { data, error } = await supabase.storage
-          .from("photos")
-          .upload(
-            `${session?.user?.id ?? "undefined"}/${fileName}`,
-            dataArray,
-            {
-              contentType: "image/jpg",
-              upsert: true,
-            }
-          );
-
-        if (error) {
-          console.error(error);
-          return false;
-        }
-      } catch (error) {
-        console.error(error);
-        return false;
-      }
-      return true;
-    },
-    [session?.user?.id]
-  );
-
-  const downloadPictureFromCloud = useCallback(
-    async (fileName: string): Promise<string> => {
-      // Declare empty sring to hold binary data
-      let binary = "";
-
-      // Retrieve picture blob from cloud
-      const { data, error } = await supabase.storage
-        .from("photos")
-        .download(`${session?.user?.id ?? "undefined"}/${fileName}`);
-
-      if (error) {
-        console.error(error);
-        return window.btoa(binary);
-      }
-
-      // Conver ArrayBuffer from Blob into byte string
-      if (data?.arrayBuffer) {
-        // Create typed array of 8-bit integers with the contents of the ArrayBuffer
-        let bytes = new Uint8Array(await data?.arrayBuffer());
-        const len = bytes.byteLength;
-        // Iterate through Uint8Array and add characters UTF-16 codes to 'binary' string
-        for (let i = 0; i < len; i++) {
-          binary += String.fromCharCode(bytes[i]);
-        }
-      }
-
-      // Convert bynary string to Base64-encoded ASCII string
-      return window.btoa(binary);
-    },
-    [session?.user?.id]
-  );
-
   useEffect(() => {
+    /**
+     * Looks for local or cloud versions of photos KVs and Image data
+     * @returns
+     */
     const loadSaved = async () => {
       dispatch({ type: "SET_STATE", state: { isLoadingData: true } });
       let value = await store.get(PHOTO_STORAGE);
@@ -133,9 +82,12 @@ export function usePhotoGallery() {
       }
 
       let photosInStore = (value ? JSON.parse(value) : []) as UserPhoto[];
-      // console.log("Photos in store", photosInStore);
 
-      // If running on web
+      console.log("Photos in store", photosInStore);
+
+      console.log(getPlatforms());
+
+      // "hybrid" will detect Capacitor;
       if (!isPlatform("hybrid")) {
         for (let photo of photosInStore) {
           // Recover picture file from local filesystem
@@ -176,15 +128,17 @@ export function usePhotoGallery() {
                 ? (photo.cloudBackup = true)
                 : (photo.cloudBackup = false)
             );
+
+            // And add photo to photo store
+            const filepath = photo.filepath;
+            photosInStore = [
+              photo,
+              ...photosInStore.filter((photo) => photo.filepath !== filepath),
+            ];
           }
-          const filepath = photo.filepath;
-          photosInStore = [
-            photo,
-            ...photosInStore.filter((photo) => photo.filepath !== filepath),
-          ];
         }
+        // "hybrid" will detect Capacitor;
       } else if (isPlatform("hybrid")) {
-        // TODO Recover picture file from local filesystem, if not, look for cloud, etc
         for (let photo of photosInStore) {
           // Check if photo can be loaded from Filesystem
           const decodeImage = async (photo: UserPhoto): Promise<boolean> => {
@@ -204,8 +158,8 @@ export function usePhotoGallery() {
             });
           };
 
+          // If can't get file from local filesystem, look for picture in the cloud
           if ((await decodeImage(photo)) === false) {
-            // If can't get file from local filesystem, look for picture in the cloud
             console.log("Getting file from cloud bucket", photo.filepath);
             const imageData = await downloadPictureFromCloud(photo.filepath);
 
@@ -222,6 +176,7 @@ export function usePhotoGallery() {
             } catch (error) {
               console.error(`Could not write file to Filesystem`);
             }
+            // And add photo to photo store
             const filepath = photo.filepath;
             photosInStore = [
               photo,
@@ -230,8 +185,8 @@ export function usePhotoGallery() {
           }
         }
       }
-      // setPhotos(photosInStore);
-      // Update app state with photos in store
+
+      // Update app state with new photos in store
       store.set(PHOTO_STORAGE, JSON.stringify(photosInStore));
       dispatch({
         type: "SET_STATE",
@@ -252,6 +207,12 @@ export function usePhotoGallery() {
     showToast,
   ]);
 
+  /**
+   * Saves picture to local Filesystem + Cloud and gets Image Embeddings
+   * @param photo
+   * @param fileName
+   * @returns UserPhoto obj including any embeddings
+   */
   const savePicture = async (
     photo: Photo,
     fileName: string
@@ -266,6 +227,7 @@ export function usePhotoGallery() {
     } else {
       base64Data = await base64FromPath(photo.webPath!);
     }
+    // console.log("base64 data is ", base64Data)
 
     const savedFile = await Filesystem.writeFile({
       path: fileName,
@@ -283,6 +245,15 @@ export function usePhotoGallery() {
       console.log(error);
       await showToast({ message: `${error}`, duration: 3000 });
       await hideLoading();
+    }
+
+    let predictions: any = "";
+
+    try {
+      predictions = await getPredictions(base64Data);
+      console.log("predictions are ", predictions)
+    } catch (error) {
+      console.log(error)
     }
 
     if (isPlatform("hybrid")) {
@@ -305,14 +276,22 @@ export function usePhotoGallery() {
     }
   };
 
+  /**
+   * Gets photo from camera or library,saves image and updates photos store
+   * @returns Uri of photo
+   */
   const takePhoto = async () => {
-    await showLoading({ message: "Processing image..." });
+    await showLoading({ message: "Wait..." });
 
+    /**
+     * Opens device camera to let user take photo or select from gallery
+     * @returns photo / undefined
+     */
     const getPhoto = async () => {
       try {
         const photo = await Camera.getPhoto({
           resultType: CameraResultType.Uri,
-          // source: CameraSource.Camera,
+          // source: CameraSource.Camera, -> if source is Camera, can't select from gallery
           quality: 50,
           width: 600,
           height: 600,
@@ -350,30 +329,35 @@ export function usePhotoGallery() {
     store.set(PHOTO_STORAGE, JSON.stringify(newPhotos));
 
     // Save copy of key-value store to cloud
-    const { data, error } = await supabase.from("photos").upsert({
-      user_id: session?.user?.id,
-      photos: newPhotos,
-    });
+    updateCloudKVStore(session, newPhotos);
+    // const { data, error } = await supabase.from("photos").upsert({
+    //   user_id: session?.user?.id,
+    //   photos: newPhotos,
+    // });
     //   .select("*");
 
     // console.log(data);
 
-    if (error) {
-      console.error(error);
-      await showToast({
-        message: error.message,
-        duration: 3000,
-      });
-    }
+    // if (error) {
+    //   console.error(error);
+    //   await showToast({
+    //     message: error.message,
+    //     duration: 3000,
+    //   });
+    // }
 
     // Update app state
     dispatch({ type: "SET_STATE", state: { photos: newPhotos } });
     await hideLoading();
   };
 
+  /**
+   * Sets Y/N flag to photo, updates local and cloud store
+   * @param photo
+   * @param e
+   * @returns
+   */
   const setFlag = async (photo: UserPhoto | undefined, e?: any) => {
-    // console.log(e.target.dataset.flag);
-    // console.log(photo, photo.flag);
     if (photo === undefined) return;
 
     e.target.dataset.flag !== ""
@@ -384,8 +368,6 @@ export function usePhotoGallery() {
       photo,
       ...photos.filter((photo) => photo.filepath !== filepath),
     ];
-    // setPhotos(newPhotos);
-    // Preferences.set({ key: PHOTO_STORAGE, value: JSON.stringify(photos) });
     store.set(PHOTO_STORAGE, JSON.stringify(newPhotos));
 
     // Update copy of key-value store on cloud
@@ -395,13 +377,16 @@ export function usePhotoGallery() {
     dispatch({ type: "SET_STATE", state: { photos: newPhotos } });
   };
 
+  /**
+   * Removes photo from store, file system and cloud bucket
+   * @param photo
+   */
   const deletePhoto = async (photo: UserPhoto) => {
     await showLoading();
     // Remove photo from the Photos reference array
     const newPhotos = photos.filter((p) => p.filepath !== photo.filepath);
 
     // Update photos array cache by overwriting the existing photo array
-    // Preferences.set({ key: PHOTO_STORAGE, value: JSON.stringify(newPhotos) });
     store.set(PHOTO_STORAGE, JSON.stringify(newPhotos));
 
     // Update copy of key-value store on cloud
@@ -439,23 +424,11 @@ export function usePhotoGallery() {
   };
 }
 
-export async function updateCloudKVStore(
-  session: Session | null,
-  values: UserPhoto[]
-) {
-  const { data, error } = await supabase.from("photos").upsert({
-    user_id: session?.user?.id,
-    photos: values,
-  });
-
-  if (error) {
-    console.error(error);
-    return error;
-  }
-
-  return 0;
-}
-
+/**
+ * Helper function to convert webpath of an image into base64 string
+ * @param path
+ * @returns Promise with base64 ASCII econded string
+ */
 export async function base64FromPath(path: string): Promise<string> {
   const response = await fetch(path);
   const blob = await response.blob();

@@ -47,6 +47,12 @@ You don't need to sign up for a Supabase account to run this code locally. Just 
 - Install the [Supabase CLI](https://supabase.com/docs/guides/cli/getting-started), along with Docker.
 - Skip ``supabase init`` as the supabase folder is included.
 - ``supabase start``
+- add a .env file to the ionic-app folder with the following:
+````
+REACT_APP_SUPABASE_URL=http://localhost:54321
+REACT_APP_SUPABASE_ANON_KEY=(the anon key displayed when you start Supabase)
+````
+- Open Supabase Studio on your localhost, go to "Storage" and add a bucket called "photos".
 
 #### Deploy to Supabase platform
 
