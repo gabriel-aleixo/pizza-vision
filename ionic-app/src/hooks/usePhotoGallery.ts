@@ -12,9 +12,7 @@ import {
   Photo,
 } from "@capacitor/camera";
 import { Filesystem, Directory } from "@capacitor/filesystem";
-// import { Preferences } from "@capacitor/preferences";
 import { Storage } from "@ionic/storage";
-// import { Session } from "@supabase/supabase-js";
 import { supabase } from "../supabaseClient";
 import { Capacitor } from "@capacitor/core";
 import Context from "../Context";
@@ -35,11 +33,9 @@ createStorage();
  * @returns
  */
 export function usePhotoGallery() {
-  // const [photos, setPhotos] = useState<UserPhoto[]>([]);
 
   const { dispatch, session, isLoadingSession, photos } = useContext(Context);
   const { getEmbeddings } = useMobileNet();
-  const { getPredictions } = useMobileNet();
   const { savePictureToCloud } = useCloudSync();
   const { downloadPictureFromCloud } = useCloudSync();
   const { updateCloudKVStore } = useCloudSync();
@@ -85,7 +81,7 @@ export function usePhotoGallery() {
 
       console.log("Photos in store", photosInStore);
 
-      console.log(getPlatforms());
+      console.log("Platforms ", getPlatforms());
 
       // "hybrid" will detect Capacitor;
       if (!isPlatform("hybrid")) {
@@ -148,11 +144,9 @@ export function usePhotoGallery() {
               img
                 .decode()
                 .then(() => {
-                  // console.log(`File ${photo.filepath} exists`);
                   resolve(true);
                 })
                 .catch((error) => {
-                  // console.error(`Error decoding file ${photo.filepath}`);
                   resolve(false);
                 });
             });
@@ -227,7 +221,6 @@ export function usePhotoGallery() {
     } else {
       base64Data = await base64FromPath(photo.webPath!);
     }
-    // console.log("base64 data is ", base64Data)
 
     const savedFile = await Filesystem.writeFile({
       path: fileName,
@@ -239,6 +232,9 @@ export function usePhotoGallery() {
 
     let embeddings: any = "";
 
+    await hideLoading();
+    await showLoading("Analyzing image");
+    
     try {
       embeddings = await getEmbeddings(base64Data);
     } catch (error) {
@@ -247,14 +243,14 @@ export function usePhotoGallery() {
       await hideLoading();
     }
 
-    let predictions: any = "";
+    // let predictions: any = "";
 
-    try {
-      predictions = await getPredictions(base64Data);
-      console.log("predictions are ", predictions)
-    } catch (error) {
-      console.log(error)
-    }
+    // try {
+    //   predictions = await getPredictions(base64Data);
+    //   console.log("predictions are ", predictions)
+    // } catch (error) {
+    //   console.log(error)
+    // }
 
     if (isPlatform("hybrid")) {
       // Display the new image rewriting the 'file://' path to HTTP
@@ -274,6 +270,7 @@ export function usePhotoGallery() {
         embeddings: embeddings,
       };
     }
+    
   };
 
   /**
@@ -281,7 +278,7 @@ export function usePhotoGallery() {
    * @returns Uri of photo
    */
   const takePhoto = async () => {
-    await showLoading({ message: "Wait..." });
+    await showLoading({ message: "Wait...", mode: "ios" });
 
     /**
      * Opens device camera to let user take photo or select from gallery
@@ -312,39 +309,15 @@ export function usePhotoGallery() {
     }
 
     const filename = new Date().getTime() + ".jpeg";
+
     const savedFileImage = await savePicture(photo, filename);
 
-    // Call getEmbeddings then set poto.embeddings with the result
-    // getBase64 from Path only works for Web. Better to pass base64 to getEmbeddings
-    // Better to get embeddings from within savePicture func where base64 is available
-    // try {
-    //   savedFileImage.embeddings = await getEmbeddings(savedFileImage);
-    // } catch (error) {
-    //   console.error(error);
-    // }
-
     const newPhotos = [savedFileImage, ...photos];
-    // setPhotos(newPhotos);
-    // Preferences.set({ key: PHOTO_STORAGE, value: JSON.stringify(newPhotos) });
+
     store.set(PHOTO_STORAGE, JSON.stringify(newPhotos));
 
     // Save copy of key-value store to cloud
     updateCloudKVStore(session, newPhotos);
-    // const { data, error } = await supabase.from("photos").upsert({
-    //   user_id: session?.user?.id,
-    //   photos: newPhotos,
-    // });
-    //   .select("*");
-
-    // console.log(data);
-
-    // if (error) {
-    //   console.error(error);
-    //   await showToast({
-    //     message: error.message,
-    //     duration: 3000,
-    //   });
-    // }
 
     // Update app state
     dispatch({ type: "SET_STATE", state: { photos: newPhotos } });

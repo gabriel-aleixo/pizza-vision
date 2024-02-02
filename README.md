@@ -91,11 +91,12 @@ More details [here](https://supabase.com/docs/guides/cli/local-development)
 
 ## TODO
 
+- Improve performance of image processing.
 - Implement infinite scroll on home feed.
 - Add account management options.
 - Image optimization.
 - Library sharing.
-- Automatically classify images using Mobilenet.
+- Automatically classify images using EfficientNet (predictions from MobileNet aren't accurate enough for our use case).
 - Filter and reorder library view.
 
 ## References

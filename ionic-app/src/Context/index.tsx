@@ -24,10 +24,25 @@ const initialState: AppState = {
   photos: [],
 };
 
-type StateAction = {
-  type: "SET_STATE";
-  state: Partial<AppState>;
+const resetState: Partial<AppState> = {
+  session: null, // supabase session variable
+  user: null,
+  phone: "",
+  isError: false,
+  isLoadingSession: true,
+  isLoadingData: false,
+  photos: [],
 };
+
+type StateAction =
+| {
+    type: "SET_STATE";
+    state: Partial<AppState>;
+  }
+| {
+    type: "RESET_STATE";
+  };
+
 
 interface AppContext extends AppState {
   dispatch: Dispatch<StateAction>;
@@ -41,6 +56,8 @@ export const ContextProvider: React.FC<{ children: ReactNode }> = (props) => {
     switch (action.type) {
       case "SET_STATE":
         return { ...state, ...action.state };
+      case "RESET_STATE":
+        return {...state, ...resetState};
       default:
         return { ...state };
     }
