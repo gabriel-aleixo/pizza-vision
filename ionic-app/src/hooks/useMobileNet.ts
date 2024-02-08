@@ -24,10 +24,8 @@ export function useMobileNet() {
   > => {
     return new Promise(async (resolve, reject) => {
 
-      console.timeLog("takePhoto")
       const model = await mobilenet.load({ version, alpha });
 
-      console.timeLog("takePhoto")
 
       const image = new Image();
       image.src = base64String;
@@ -35,13 +33,10 @@ export function useMobileNet() {
       image
         .decode()
         .then(async () => {
-          console.timeLog("takePhoto")
 
           const embeddings = model.infer(image, true);
-          console.timeLog("takePhoto")
 
           const data = await embeddings.array();
-          console.timeLog("takePhoto")
 
           // console.log(data);
           resolve(data);

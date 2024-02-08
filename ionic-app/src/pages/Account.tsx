@@ -12,6 +12,7 @@ import {
   useIonToast,
   useIonRouter,
   IonNote,
+  IonText,
 } from "@ionic/react";
 import { useEffect, useState, useContext, useCallback } from "react";
 import Context from "../Context";
@@ -40,10 +41,7 @@ function AccountPage() {
       setShowLoading(true);
 
       try {
-        let { data, error } = await supabase
-          .from("profiles")
-          .select()
-          .single();
+        let { data, error } = await supabase.from("profiles").select().eq("id", session?.user!.id).single();
 
         console.log(data);
 
@@ -118,38 +116,51 @@ function AccountPage() {
           onDidDismiss={() => setShowLoading(false)}
           message={"Hold on..."}
         />
-        <form onSubmit={updateProfile} className="ion-padding">
-          <div>
-            <IonLabel position="stacked">Email</IonLabel>
+        <div className="ion-padding">
+          <IonLabel position="stacked">
+            {" "}
+            Your email is private and can't be changed
+          </IonLabel>
+          <IonInput
+            type="text"
+            name="email"
+            value={session?.user?.email}
+            disabled
+          />
+        </div>
+
+        <form onSubmit={updateProfile} className="ion-padding-horizontal">
+          <div className="ion-padding-bottom">
+            <IonText>
+              <h3>Public Profile</h3>
+            </IonText>
+            <IonNote>
+              Your Full Name and Username will be visible to other users
+            </IonNote>
+          </div>
+          <div className="ion-padding-bottom">
+            <IonLabel position="stacked">User Name</IonLabel>
             <IonInput
               type="text"
-              name="email"
-              value={session?.user?.email}
-              disabled
+              name="username"
+              value={profile.username}
+              onIonChange={(e) =>
+                setProfile({ ...profile, username: e.detail.value ?? "" })
+              }
             />
-            <IonNote slot="helper">You can't change your Email</IonNote>
           </div>
-          {/* <IonLabel position="stacked">Phone</IonLabel>
-              <IonInput type="text" name="phone" value={session?.user?.phone} disabled /> */}
-          <IonLabel position="stacked">User Name</IonLabel>
-          <IonInput
-            type="text"
-            name="username"
-            value={profile.username}
-            onIonChange={(e) =>
-              setProfile({ ...profile, username: e.detail.value ?? "" })
-            }
-          />
 
-          <IonLabel position="stacked">Full Name</IonLabel>
-          <IonInput
-            type="text"
-            name="full_name"
-            value={profile.full_name}
-            onIonChange={(e) =>
-              setProfile({ ...profile, full_name: e.detail.value ?? "" })
-            }
-          />
+          <div className="ion-padding-bottom">
+            <IonLabel position="stacked">Full Name</IonLabel>
+            <IonInput
+              type="text"
+              name="full_name"
+              value={profile.full_name}
+              onIonChange={(e) =>
+                setProfile({ ...profile, full_name: e.detail.value ?? "" })
+              }
+            />
+          </div>
 
           <div className="ion-text-center ion-padding-top">
             <IonButton expand="block" type="submit">
