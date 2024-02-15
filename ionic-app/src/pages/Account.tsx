@@ -13,8 +13,9 @@ import {
   useIonRouter,
   IonNote,
   IonText,
+  IonList,
 } from "@ionic/react";
-import { useEffect, useState, useContext, useCallback } from "react";
+import { useEffect, useState, useContext } from "react";
 import Context from "../Context";
 import { supabase } from "../supabaseClient";
 // import { Session } from "@supabase/gotrue-js/src/lib/types";
@@ -23,11 +24,11 @@ function AccountPage() {
   const [showToast] = useIonToast();
   const router = useIonRouter();
   const [showLoading, setShowLoading] = useState<boolean>(false);
-  const { session, dispatch } = useContext(Context);
+  const { session, user, profile, photos, dispatch } = useContext(Context);
 
-  const [profile, setProfile] = useState({
-    username: "",
-    full_name: "",
+  const [newProfile, setNewProfile] = useState({
+    username: profile?.username ?? "",
+    full_name: profile?.fullName ?? "",
   });
 
   const signOut = async () => {
@@ -41,51 +42,94 @@ function AccountPage() {
       setShowLoading(true);
 
       try {
-        let { data, error } = await supabase.from("profiles").select().eq("id", session?.user!.id).single();
-
-        console.log(data);
+        let { data, error } = await supabase
+          .from("profiles")
+          .select("*")
+          .eq("id", session?.user!.id)
+          .single();
 
         if (error) {
           throw error;
         }
 
-        if (data != null) {
-          setProfile({
-            username: data.username,
-            full_name: data.full_name,
-          });
+        let access_granted_to: any[] = [];
+        let access_granted_by: any[] = [];
+
+        if (data != null && data.access_granted_to != null) {
+          let access_granted_to_promises = data.access_granted_to.map(
+            async (uid: any) => {
+              let { data, error } = await supabase
+                .from("profiles")
+                .select("id, full_name")
+                .eq("id", uid)
+                .single();
+
+              if (error) {
+                throw error;
+              }
+
+              return data;
+            }
+          );
+
+          access_granted_to = await Promise.all(access_granted_to_promises);
         }
+
+        if (data != null && data.access_granted_by != null) {
+          let access_granted_by_promises = data.access_granted_by.map(
+            async (uid: any) => {
+              let { data, error } = await supabase
+                .from("profiles")
+                .select("id, full_name")
+                .eq("id", uid)
+                .single();
+
+              if (error) {
+                throw error;
+              }
+
+              return data;
+            }
+          );
+
+          access_granted_by = await Promise.all(access_granted_by_promises);
+        }
+
+        dispatch({
+          type: "SET_STATE",
+          state: {
+            profile: {
+              username: data.username,
+              fullName: data.full_name,
+              sharingOn: data.sharing_on,
+              photosAccessGrantedBy: access_granted_by,
+              photosAccessGrantedTo: access_granted_to,
+            },
+          },
+        });
       } catch (error: any) {
         console.error(error);
         showToast({
           message: error.message,
           duration: 5000,
         });
-        // dispatch({ type: "RESET_STATE" });
-        // await signOut();
       } finally {
         setShowLoading(false);
       }
     };
 
     getProfile();
-  }, [showToast]);
+  }, [dispatch, session?.user, showToast]);
 
-  const updateProfile = async (e?: any, avatar_url: string = "") => {
+  const updateProfile = async (e?: any) => {
     e?.preventDefault();
 
-    console.log("update ");
     setShowLoading(true);
 
     try {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-
       const updates = {
         id: user!.id,
-        ...profile,
-        avatar_url: avatar_url,
+        ...newProfile,
         updated_at: new Date(),
       };
 
@@ -94,11 +138,22 @@ function AccountPage() {
       if (error) {
         throw error;
       }
+
+      dispatch({
+        type: "SET_STATE",
+        state: {
+          profile: {
+            ...profile!,
+            username: newProfile.username,
+            fullName: newProfile.full_name,
+          },
+        },
+      });
     } catch (error: any) {
       showToast({ message: error.message, duration: 5000 });
     } finally {
-      //   await hideLoading();
       setShowLoading(false);
+      showToast({ message: "Profile updated", duration: 3000 });
     }
   };
   return (
@@ -143,9 +198,9 @@ function AccountPage() {
             <IonInput
               type="text"
               name="username"
-              value={profile.username}
+              value={newProfile?.username ?? ""}
               onIonChange={(e) =>
-                setProfile({ ...profile, username: e.detail.value ?? "" })
+                setNewProfile({ ...newProfile, username: e.detail.value ?? "" })
               }
             />
           </div>
@@ -155,19 +210,59 @@ function AccountPage() {
             <IonInput
               type="text"
               name="full_name"
-              value={profile.full_name}
+              value={newProfile?.full_name ?? ""}
               onIonChange={(e) =>
-                setProfile({ ...profile, full_name: e.detail.value ?? "" })
+                setNewProfile({
+                  ...newProfile,
+                  full_name: e.detail.value ?? "",
+                })
               }
             />
           </div>
-
           <div className="ion-text-center ion-padding-top">
             <IonButton expand="block" type="submit">
               Update Profile
             </IonButton>
           </div>
         </form>
+
+        <div className="ion-padding-bottom">
+          <IonText>
+            <h3>Library Sharing</h3>
+          </IonText>
+          <IonNote>Give other users access to your photos library</IonNote>
+        </div>
+
+        <div>
+          {profile.sharingOn && profile.photosAccessGrantedTo.length > 0 ? (
+            <>
+              <IonNote>You ARE sharing your library with:</IonNote>
+              <IonList>
+                {profile.photosAccessGrantedTo.map((value, index) => (
+                  <IonText key={index}>{value.full_name}</IonText>
+                ))}{" "}
+              </IonList>
+            </>
+          ) : (
+              <IonNote>You are NOT sharing your library</IonNote>
+          )}
+        </div>
+
+        <div>
+          {profile.photosAccessGrantedBy &&
+          profile.photosAccessGrantedBy.length > 0 ? (
+            <>
+              <IonNote>You have access to these shared libraries:</IonNote>
+              <IonList>
+                {profile.photosAccessGrantedBy.map((value, index) => (
+                  <IonText key={index}>{value.full_name}</IonText>
+                ))}
+              </IonList>
+            </>
+          ) : (
+            <></>
+          )}
+        </div>
 
         <div className="ion-text-center ion-padding">
           <IonButton expand="block" color="warning" onClick={signOut}>

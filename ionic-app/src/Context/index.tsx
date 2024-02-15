@@ -2,11 +2,28 @@ import React, { createContext, useReducer, Dispatch, ReactNode } from "react";
 import { Session, User } from "@supabase/gotrue-js/src/lib/types"
 import { UserPhoto } from "../hooks/usePhotoGallery"
 
+interface UserProfile {
+  username: string;
+  fullName: string;
+  sharingOn: boolean;
+  photosAccessGrantedBy: any[];
+  photosAccessGrantedTo: any[];
+
+}
+
+const initialProfile : UserProfile = {
+  username: "",
+  fullName: "",
+  sharingOn: false,
+  photosAccessGrantedBy: [],
+  photosAccessGrantedTo: [],
+}
+
 interface AppState {
   session: Session | null;
   user: User | null;
-  email: string;
-  phone: string;
+  profile: UserProfile;
+  signinEmail: string;
   isError: boolean;
   isLoadingSession: boolean;
   isLoadingData: boolean;
@@ -14,10 +31,10 @@ interface AppState {
 }
 
 const initialState: AppState = {
-  session: null, // supabase session variable
+  session: null,
   user: null,
-  email: "",
-  phone: "",
+  profile: initialProfile,
+  signinEmail: "",
   isError: false,
   isLoadingSession: true,
   isLoadingData: false,
@@ -25,9 +42,9 @@ const initialState: AppState = {
 };
 
 const resetState: Partial<AppState> = {
-  session: null, // supabase session variable
+  session: null,
   user: null,
-  phone: "",
+  profile: initialProfile,
   isError: false,
   isLoadingSession: true,
   isLoadingData: false,
