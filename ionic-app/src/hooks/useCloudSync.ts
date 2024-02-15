@@ -97,10 +97,14 @@ export function useCloudSync() {
    */
   const updateCloudKVStore = useCallback(
     async (session: Session | null, values: UserPhoto[]) => {
-      const { data, error } = await supabase.from("photos").upsert({
+
+      const updates = {
         user_id: session?.user?.id,
         photos: values,
-      });
+        updated_at: new Date(),
+      };
+
+      const { data, error } = await supabase.from("photos").upsert(updates);
 
       if (error) {
         console.error(error);
