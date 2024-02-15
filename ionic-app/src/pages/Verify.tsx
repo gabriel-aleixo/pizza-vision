@@ -24,7 +24,7 @@ import { Redirect, useHistory } from "react-router";
 import "./Verify.css";
 
 function VerifyPage() {
-  const { dispatch, session, email, photos } = useContext(Context);
+  const { dispatch, session, signinEmail, photos } = useContext(Context);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const history = useHistory();
 
@@ -47,7 +47,7 @@ function VerifyPage() {
   const handleCancel = () => {
     dispatch({
       type: "SET_STATE",
-      state: { email: "" },
+      state: { signinEmail: "" },
     });
     history.replace("/login");
   };
@@ -56,7 +56,7 @@ function VerifyPage() {
     return <Redirect to="/feed" />;
   }
 
-  if (email === "") {
+  if (signinEmail === "") {
     return <Redirect to="/login" />;
   }
 
@@ -91,7 +91,7 @@ function OtpField() {
   const [otp, setOtp] = useState("");
   const [showLoading, hideLoading] = useIonLoading();
   const [showToast] = useIonToast();
-  const { dispatch, email } = useContext(Context);
+  const { dispatch, signinEmail } = useContext(Context);
 
   const handleVerifyOtp = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -100,7 +100,7 @@ function OtpField() {
     // Link example
     // console.log("Verification", email, otp);
     let { data, error } = await supabase.auth.verifyOtp({
-      email: email,
+      email: signinEmail,
       token: otp,
       type: "magiclink",
     });

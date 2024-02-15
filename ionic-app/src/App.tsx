@@ -51,15 +51,40 @@ setupIonicReact();
 const App: React.FC = () => {
   // const [session, setSession] = useState<Session | null>();
 
-  const { dispatch } = useContext(Context);
+  const { session, dispatch } = useContext(Context);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       dispatch({
         type: "SET_STATE",
-        state: { session: session, isLoadingSession: false },
+        state: { session: session, user: session?.user },
       });
     });
+
+    supabase
+      .from("profiles")
+      .select("*")
+      .eq("id", session?.user.id)
+      .single()
+      .then((response) => {
+        if (response.data != null) {
+          const profile = response.data;
+
+          dispatch({
+            type: "SET_STATE",
+            state: {
+              profile: {
+                fullName: profile.full_name,
+                username: profile.username,
+                sharingOn: profile.sharing_on,
+                photosAccessGrantedBy: profile.access_granted_by,
+                photosAccessGrantedTo: profile.access_granted_to,
+
+              },
+            },
+          });
+        }
+      });
 
     supabase.auth.onAuthStateChange((event, session) => {
       console.log(event);
@@ -68,7 +93,7 @@ const App: React.FC = () => {
         state: { session: session, isLoadingSession: false },
       });
     });
-  }, [dispatch]);
+  }, [dispatch, session?.user.id]);
 
   return (
     <IonApp>

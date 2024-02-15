@@ -66,14 +66,14 @@ function LoginPage() {
 function LoginField() {
   const [showLoading, hideLoading] = useIonLoading();
   const [showToast] = useIonToast();
-  const { dispatch, email } = useContext(Context);
+  const { dispatch, signinEmail } = useContext(Context);
 
   const history = useHistory();
 
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     await showLoading();
-    const { data, error } = await supabase.auth.signInWithOtp({ email: email });
+    const { data, error } = await supabase.auth.signInWithOtp({ email: signinEmail });
     if (error) {
       await showToast({
         message: error.message,
@@ -97,12 +97,12 @@ function LoginField() {
         <IonLabel position="stacked">Email*</IonLabel>
         <IonInput
           clearInput={true}
-          value={email}
+          value={signinEmail}
           name="email"
           onIonChange={(e) =>
             dispatch({
               type: "SET_STATE",
-              state: { email: e.detail.value ?? "" },
+              state: { signinEmail: e.detail.value ?? "" },
             })
           }
           type="email"
