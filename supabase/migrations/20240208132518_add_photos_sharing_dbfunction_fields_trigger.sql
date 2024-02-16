@@ -15,6 +15,7 @@ SET check_function_bodies = OFF;
 CREATE OR REPLACE FUNCTION public.update_photos_access_granted_by()
     RETURNS TRIGGER
     LANGUAGE plpgsql
+    SECURITY DEFINER
     AS $function$
 DECLARE
     uid uuid;
@@ -23,33 +24,29 @@ DECLARE
     -- uids in the old field
 BEGIN
     -- Loop through each uid in NEW.access_granted_to[]
-    FOR uid IN
-    SELECT
-        unnest(NEW.access_granted_to)
-        LOOP
+    FOREACH uid IN ARRAY NEW.access_granted_to LOOP
+        -- Check if uid is different from own user id
+        IF uid <> NEW.id THEN
             -- Update the profiles table
-            BEGIN
+            UPDATE
+                public.profiles
                 -- Check if uid already in, add if not
-                UPDATE
-                    public.profiles
-                SET
-                    photos_access_granted_by = ARRAY_APPEND(COALESCE(photos_access_granted_by, ARRAY[] : :uuid[]), NEW.user_id)
-                WHERE
-                    NOT (uid = ANY (
-                            SELECT
-                                UNNEST(photos_access_granted_by)
-                            FROM
-                                public.profiles))
-                    AND id = uid;
-                IF NOT FOUND THEN
-                    -- Debugging: check if the update statement did not update any rows
-                    RAISE NOTICE 'No rows updated for uid: %', uid;
-                END IF;
-            EXCEPTION
-                WHEN OTHERS THEN
-                    -- Exception handling
-                    RAISE NOTICE 'Error occurred for uid: %, error: %', uid, SQLERRM;
-            END;
+            SET
+                access_granted_by = ARRAY_APPEND(COALESCE(access_granted_by, ARRAY[]::uuid[]), NEW.id)
+            WHERE
+                id = uid
+                AND NOT (uid = ANY (
+                        SELECT
+                            UNNEST(access_granted_by)
+                        FROM
+                            public.profiles
+                        WHERE
+                            id = uid));
+            IF NOT FOUND THEN
+                -- Debugging: check if the update statement did not update any rows
+                RAISE NOTICE 'No rows updated for uid: %', uid;
+            END IF;
+        END IF;
     END LOOP;
     -- Iterate over the old access_granted_to array
     FOREACH removed_uid IN ARRAY OLD.access_granted_to LOOP
@@ -59,18 +56,19 @@ BEGIN
             UPDATE
                 public.profiles
             SET
-                photos_access_granted_by = array_remove(photos_access_granted_by, NEW.user_id)
+                access_granted_by = array_remove(access_granted_by, NEW.id)
             WHERE
                 id = removed_uid;
             IF NOT FOUND THEN
                 RAISE NOTICE 'No rows updated for uid: %', removed_uid;
-                END IF;
             END IF;
-        END LOOP;
+        END IF;
+    END LOOP;
     RETURN NULL;
 END;
-
 $function$;
+
+
 
 CREATE OR REPLACE FUNCTION public.handle_new_user()
     RETURNS TRIGGER
