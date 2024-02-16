@@ -1,11 +1,14 @@
 ALTER TABLE "public"."photos"
-    ADD COLUMN "access_granted_to" uuid[];
+    ALTER COLUMN "created_at" SET DEFAULT now();
 
 ALTER TABLE "public"."photos"
-    ALTER COLUMN "created_at" DROP DEFAULT;
+    ALTER COLUMN "updated_at" DROP DEFAULT;
 
 ALTER TABLE "public"."profiles"
-    ADD COLUMN "photos_access_granted_by" uuid[];
+    ADD COLUMN "access_granted_by" uuid[];
+
+ALTER TABLE "public"."profiles"
+    ADD COLUMN "access_granted_to" uuid[];
 
 ALTER TABLE "public"."profiles"
     ADD COLUMN "sharing_on" boolean DEFAULT FALSE;
@@ -68,8 +71,6 @@ BEGIN
 END;
 $function$;
 
-
-
 CREATE OR REPLACE FUNCTION public.handle_new_user()
     RETURNS TRIGGER
     LANGUAGE plpgsql
@@ -91,8 +92,8 @@ CREATE POLICY "Public profiles are viewable by authenticated users" ON "public".
     FOR SELECT TO authenticated
         USING (TRUE);
 
-CREATE TRIGGER on_photos_access_granted_to_update
-    AFTER UPDATE OF access_granted_to ON public.photos
+CREATE TRIGGER on_access_granted_to_update
+    AFTER UPDATE OF access_granted_to ON public.profiles
     FOR EACH ROW
     WHEN((old.access_granted_to IS DISTINCT FROM new.access_granted_to))
     EXECUTE FUNCTION update_photos_access_granted_by();
