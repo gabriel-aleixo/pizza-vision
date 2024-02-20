@@ -1,6 +1,6 @@
 import { Redirect, Route } from "react-router-dom";
 import { useEffect, useContext } from "react";
-import { supabase } from "./supabaseClient";
+import { supabase } from "./services/supabaseClient";
 // import { Session } from "@supabase/gotrue-js/src/lib/types"
 import {
   IonApp,
@@ -24,6 +24,7 @@ import AccountPage from "./pages/Account";
 import Details from "./pages/Details";
 import Context from "./Context";
 import { ProtectedRoute } from "./components/ProtectedRoute";
+import { useUserProfile } from "./hooks/useUserProfile";
 
 /* Core CSS required for Ionic components to work properly */
 import "@ionic/react/css/core.css";
@@ -52,48 +53,64 @@ const App: React.FC = () => {
   // const [session, setSession] = useState<Session | null>();
 
   const { session, dispatch } = useContext(Context);
+  const { getProfile } = useUserProfile();
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      dispatch({
-        type: "SET_STATE",
-        state: { session: session, user: session?.user },
-      });
-    });
+    const loadUserData = async () => {
+      if (session === null) {
+        try {
+          console.log("Retrieve session");
+          const {
+            data: { session },
+            error,
+          } = await supabase.auth.getSession();
 
-    supabase
-      .from("profiles")
-      .select("*")
-      .eq("id", session?.user.id)
-      .single()
-      .then((response) => {
-        if (response.data != null) {
-          const profile = response.data;
+          if (error) throw error;
 
           dispatch({
             type: "SET_STATE",
             state: {
-              profile: {
-                fullName: profile.full_name,
-                username: profile.username,
-                sharingOn: profile.sharing_on,
-                photosAccessGrantedBy: profile.access_granted_by,
-                photosAccessGrantedTo: profile.access_granted_to,
-
-              },
+              session: session,
+              user: session?.user,
             },
           });
+          console.log("Session set");
+        } catch (error) {
+          console.error(error);
         }
-      });
+      }
+
+      if (session) {
+        try {
+          console.log("retrieve profile");
+          const [profile, error] = await getProfile(session);
+
+          if (error) throw error;
+
+          if (profile) {
+            dispatch({
+              type: "SET_STATE",
+              state: {
+                profile: profile,
+              },
+            });
+            console.log("Profile set");
+          }
+        } catch (error) {
+          console.error(error);
+        }
+      }
+    };
+    loadUserData();
 
     supabase.auth.onAuthStateChange((event, session) => {
-      // console.log(event);
+      console.log("State change", event);
       dispatch({
         type: "SET_STATE",
         state: { session: session, isLoadingSession: false },
       });
     });
-  }, [dispatch, session?.user.id]);
+  }, [dispatch, getProfile, session]);
 
   return (
     <IonApp>

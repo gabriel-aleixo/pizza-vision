@@ -1,130 +1,74 @@
 import {
   IonButton,
   IonContent,
-  IonHeader,
   IonInput,
   IonLabel,
   IonPage,
-  IonTitle,
-  IonToolbar,
-  IonLoading,
-  //   useIonLoading,
+  // IonLoading,
+  useIonLoading,
   useIonToast,
   useIonRouter,
   IonNote,
-  IonText,
   IonList,
+  IonIcon,
+  IonListHeader,
+  IonItem,
+  IonCard,
+  IonCardHeader,
+  IonCardContent,
+  IonCardTitle,
+  IonCardSubtitle,
+  IonToggle,
 } from "@ionic/react";
-import { useEffect, useState, useContext } from "react";
+import { useState, useContext } from "react";
 import Context from "../Context";
-import { supabase } from "../supabaseClient";
-// import { Session } from "@supabase/gotrue-js/src/lib/types";
+import { supabase } from "../services/supabaseClient";
+import { useUserProfile } from "../hooks/useUserProfile";
+import { trash } from "ionicons/icons";
+
+import "./Account.css";
 
 function AccountPage() {
   const [showToast] = useIonToast();
   const router = useIonRouter();
-  const [showLoading, setShowLoading] = useState<boolean>(false);
-  const { session, user, profile, photos, dispatch } = useContext(Context);
+  const [showLoading, hideLoading] = useIonLoading();
+  const { session, user, profile, dispatch } = useContext(Context);
+  const { signOut } = useUserProfile();
 
   const [newProfile, setNewProfile] = useState({
     username: profile?.username ?? "",
     full_name: profile?.fullName ?? "",
   });
 
-  const signOut = async () => {
-    dispatch({ type: "RESET_STATE" });
-    await supabase.auth.signOut();
-    router.push("/", "forward", "replace");
+  /**
+   *  Calls the signOut() function, resets app state and routes to root
+   * @returns
+   */
+  const logOut = async () => {
+    const error = await signOut();
+
+    if (error) {
+      console.error(error);
+      showToast({
+        message: error.message,
+        duration: 5000,
+      });
+
+      return null;
+    } else {
+      dispatch({ type: "RESET_STATE" });
+      router.push("/", "forward", "replace");
+    }
   };
 
-  useEffect(() => {
-    const getProfile = async () => {
-      setShowLoading(true);
-
-      try {
-        let { data, error } = await supabase
-          .from("profiles")
-          .select("*")
-          .eq("id", session?.user!.id)
-          .single();
-
-        if (error) {
-          throw error;
-        }
-
-        let access_granted_to: any[] = [];
-        let access_granted_by: any[] = [];
-
-        if (data != null && data.access_granted_to != null) {
-          let access_granted_to_promises = data.access_granted_to.map(
-            async (uid: any) => {
-              let { data, error } = await supabase
-                .from("profiles")
-                .select("id, full_name")
-                .eq("id", uid)
-                .single();
-
-              if (error) {
-                throw error;
-              }
-
-              return data;
-            }
-          );
-
-          access_granted_to = await Promise.all(access_granted_to_promises);
-        }
-
-        if (data != null && data.access_granted_by != null) {
-          let access_granted_by_promises = data.access_granted_by.map(
-            async (uid: any) => {
-              let { data, error } = await supabase
-                .from("profiles")
-                .select("id, full_name")
-                .eq("id", uid)
-                .single();
-
-              if (error) {
-                throw error;
-              }
-
-              return data;
-            }
-          );
-
-          access_granted_by = await Promise.all(access_granted_by_promises);
-        }
-
-        dispatch({
-          type: "SET_STATE",
-          state: {
-            profile: {
-              username: data.username,
-              fullName: data.full_name,
-              sharingOn: data.sharing_on,
-              photosAccessGrantedBy: access_granted_by,
-              photosAccessGrantedTo: access_granted_to,
-            },
-          },
-        });
-      } catch (error: any) {
-        console.error(error);
-        showToast({
-          message: error.message,
-          duration: 5000,
-        });
-      } finally {
-        setShowLoading(false);
-      }
-    };
-
-    getProfile();
-  }, [dispatch, session?.user, showToast]);
-
+  /**
+   * Sends profile updates to supabase
+   * @param e form submit event
+   */
   const updateProfile = async (e?: any) => {
     e?.preventDefault();
 
-    setShowLoading(true);
+    await showLoading();
 
     try {
       const updates = {
@@ -139,145 +83,198 @@ function AccountPage() {
         throw error;
       }
 
-      dispatch({
-        type: "SET_STATE",
-        state: {
-          profile: {
-            ...profile!,
-            username: newProfile.username,
-            fullName: newProfile.full_name,
-          },
-        },
-      });
+      showToast({ message: "Profile updated", duration: 3000 });
     } catch (error: any) {
       showToast({ message: error.message, duration: 5000 });
     } finally {
-      setShowLoading(false);
-      showToast({ message: "Profile updated", duration: 3000 });
+      hideLoading();
     }
   };
+
+  /**
+   * Updates user sharing preference on supabase and updates app state
+   * @param e Ionic toggle custome event
+   */
+  const handleSharingChange = async (e?: any) => {
+    e?.preventDefault();
+
+    await showLoading();
+
+    try {
+      let { data, error } = await supabase
+        .from("profiles")
+        .update({ sharing_on: e.detail.checked })
+        .eq("id", user!.id)
+        .select()
+        .single();
+
+      let newSharingValue: boolean = data.sharing_on;
+
+      if (error) {
+        throw error;
+      } else {
+        dispatch({
+          type: "SET_STATE",
+          state: {
+            profile: {
+              ...profile!,
+              sharingOn: newSharingValue,
+            },
+          },
+        });
+      }
+    } catch (error: any) {
+      showToast({ message: error.message, duration: 5000 });
+    } finally {
+      await hideLoading();
+    }
+  };
+
   return (
     <IonPage>
-      <IonHeader>
-        <IonToolbar color="primary">
-          <IonTitle>Account</IonTitle>
-        </IonToolbar>
-      </IonHeader>
-
       <IonContent>
-        <IonLoading
-          cssClass="my-custom-class"
-          isOpen={showLoading}
-          onDidDismiss={() => setShowLoading(false)}
-          message={"Hold on..."}
-        />
-        <div className="ion-padding">
-          <IonLabel position="stacked">
-            {" "}
-            Your email is private and can't be changed
-          </IonLabel>
-          <IonInput
-            type="text"
-            name="email"
-            value={session?.user?.email}
-            disabled
-          />
-        </div>
-
-        <form onSubmit={updateProfile} className="ion-padding-horizontal">
-          <div className="ion-padding-bottom">
-            <IonText>
-              <h3>Public Profile</h3>
-            </IonText>
-            <IonNote>
-              Your Full Name and Username will be visible to other users
-            </IonNote>
-          </div>
-          <div className="ion-padding-bottom">
-            <IonLabel position="stacked">User Name</IonLabel>
-            <IonInput
-              type="text"
-              name="username"
-              value={newProfile?.username ?? ""}
-              onIonChange={(e) =>
-                setNewProfile({ ...newProfile, username: e.detail.value ?? "" })
-              }
-            />
-          </div>
-
-          <div className="ion-padding-bottom">
-            <IonLabel position="stacked">Full Name</IonLabel>
-            <IonInput
-              type="text"
-              name="full_name"
-              value={newProfile?.full_name ?? ""}
-              onIonChange={(e) =>
-                setNewProfile({
-                  ...newProfile,
-                  full_name: e.detail.value ?? "",
-                })
-              }
-            />
-          </div>
-          <div className="ion-text-center ion-padding-top">
-            <IonButton expand="block" type="submit">
-              Update Profile
+        <IonCard color={"light"}>
+          <IonCardHeader>
+            <IonCardTitle>Account</IonCardTitle>
+          </IonCardHeader>
+          <IonCardContent>
+            <IonList>
+              <IonItem color={"light"} lines="none">
+                <IonNote>{session?.user?.email}</IonNote>
+              </IonItem>
+            </IonList>
+            <IonButton expand="full" color="warning" onClick={logOut}>
+              Log Out
             </IonButton>
-          </div>
-        </form>
+          </IonCardContent>
+        </IonCard>
 
-        <div className="ion-padding-bottom">
-          <IonText>
-            <h3>Library Sharing</h3>
-          </IonText>
-          <IonNote>Give other users access to your photos library</IonNote>
-        </div>
+        <IonCard color={"light"}>
+          <IonCardHeader>
+            <IonCardTitle>Profile</IonCardTitle>
+            <IonCardSubtitle>
+              Your username and full name can be visible to other users
+            </IonCardSubtitle>
+          </IonCardHeader>
+          <IonCardContent>
+            <form onSubmit={updateProfile}>
+              <IonItem color={"light"} lines="full">
+                <IonNote slot="helper">User Name</IonNote>
+                <IonInput
+                  type="text"
+                  name="username"
+                  value={newProfile?.username ?? ""}
+                  onIonChange={(e) =>
+                    setNewProfile({
+                      ...newProfile,
+                      username: e.detail.value ?? "",
+                    })
+                  }
+                />
+              </IonItem>
+              <IonItem color={"light"} lines="full">
+                <IonNote slot="helper">Full Name</IonNote>
+                <IonInput
+                  type="text"
+                  name="full_name"
+                  value={newProfile?.full_name ?? ""}
+                  onIonChange={(e) =>
+                    setNewProfile({
+                      ...newProfile,
+                      full_name: e.detail.value ?? "",
+                    })
+                  }
+                />
+              </IonItem>
+              <IonButton expand="block" type="submit">
+                Update Profile
+              </IonButton>
+            </form>
+          </IonCardContent>
+        </IonCard>
 
-        <div>
-          {profile.sharingOn && profile.photosAccessGrantedTo.length > 0 ? (
-            <>
-              <IonNote>You ARE sharing your library with:</IonNote>
-              <IonList>
-                {profile.photosAccessGrantedTo.map((value, index) => (
-                  <IonText key={index}>{value.full_name}</IonText>
-                ))}{" "}
-              </IonList>
-            </>
-          ) : (
-              <IonNote>You are NOT sharing your library</IonNote>
-          )}
-        </div>
+        <IonCard color={"light"}>
+          <IonCardHeader>
+            <IonCardTitle>Library Sharing</IonCardTitle>
+            <IonCardSubtitle>
+              Share access to your library with other users
+            </IonCardSubtitle>
+          </IonCardHeader>
+          <IonCardContent>
+            <IonList lines="none">
+              <IonListHeader color={"light"}>General Access</IonListHeader>
+              <IonItem color={"light"}>
+                <IonLabel>
+                  Sharing is {profile.sharingOn ? <>ON</> : <>OFF</>}
+                </IonLabel>
+                <IonToggle
+                  onIonChange={handleSharingChange}
+                  slot="end"
+                  checked={profile.sharingOn}
+                ></IonToggle>
+              </IonItem>
+            </IonList>
 
-        <div>
-          {profile.photosAccessGrantedBy &&
-          profile.photosAccessGrantedBy.length > 0 ? (
-            <>
-              <IonNote>You have access to these shared libraries:</IonNote>
-              <IonList>
-                {profile.photosAccessGrantedBy.map((value, index) => (
-                  <IonText key={index}>{value.full_name}</IonText>
-                ))}
-              </IonList>
-            </>
-          ) : (
-            <></>
-          )}
-        </div>
+            {profile.sharingOn && profile.photosAccessGrantedTo.length > 0 ? (
+              <>
+                <IonList lines="none">
+                  <IonListHeader color={"light"}>
+                    People with access
+                  </IonListHeader>
+                  {profile.photosAccessGrantedTo.map((value, index) => (
+                    <IonItem key={index} color={"light"}>
+                      <IonLabel>{value.full_name}</IonLabel>
+                      <IonIcon icon={trash} slot="end" color="danger"></IonIcon>
+                    </IonItem>
+                  ))}
+                </IonList>
+                <IonButton expand="full">Add others</IonButton>
+              </>
+            ) : (
+              <></>
+            )}
+          </IonCardContent>
+        </IonCard>
 
-        <div className="ion-text-center ion-padding">
-          <IonButton expand="block" color="warning" onClick={signOut}>
-            Log Out
-          </IonButton>
-        </div>
-        <div className="ion-text-center ion-padding">
-          <IonButton
-            expand="block"
-            color="danger"
-            href={`mailto:delete@gabrielaleixo.com?subject=Please delete my account&body=Please delete my account with the email ${session?.user?.email}`}
-          >
-            Delete Account (email us)
-          </IonButton>
-        </div>
+        <IonCard color={"light"}>
+          <IonCardHeader>
+            <IonCardTitle>Shared with you</IonCardTitle>
+          </IonCardHeader>
+          <IonCardContent>
+            <IonList lines="none">
+              {profile.photosAccessGrantedBy &&
+              profile.photosAccessGrantedBy.length > 0 ? (
+                <>
+                  {profile.photosAccessGrantedBy.map((value, index) => (
+                    <IonItem key={index} color={"light"}>
+                      <IonLabel>{value.full_name}</IonLabel>
+                    </IonItem>
+                  ))}
+                </>
+              ) : (
+                <></>
+              )}
+            </IonList>
+          </IonCardContent>
+        </IonCard>
+
+        <IonCard color={"light"}>
+          <IonCardHeader>
+            <IonCardTitle>Danger Zone</IonCardTitle>
+            <IonCardSubtitle>
+              Email us if you want to delete your account
+            </IonCardSubtitle>
+          </IonCardHeader>
+          <IonCardContent>
+            <IonButton
+              expand="block"
+              color="danger"
+              href={`mailto:delete@gabrielaleixo.com?subject=Please delete my account&body=Please delete my account with the email ${session?.user?.email}`}
+            >
+              Delete My Account
+            </IonButton>
+          </IonCardContent>
+        </IonCard>
       </IonContent>
     </IonPage>
   );

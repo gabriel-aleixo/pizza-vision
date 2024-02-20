@@ -2,7 +2,7 @@ import React, { createContext, useReducer, Dispatch, ReactNode } from "react";
 import { Session, User } from "@supabase/gotrue-js/src/lib/types"
 import { UserPhoto } from "../hooks/usePhotoGallery"
 
-interface UserProfile {
+export interface UserProfile {
   username: string;
   fullName: string;
   sharingOn: boolean;

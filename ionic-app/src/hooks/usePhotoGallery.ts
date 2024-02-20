@@ -13,7 +13,7 @@ import {
 } from "@capacitor/camera";
 import { Filesystem, Directory } from "@capacitor/filesystem";
 import { Storage } from "@ionic/storage";
-import { supabase } from "../supabaseClient";
+import { supabase } from "../services/supabaseClient";
 import { Capacitor } from "@capacitor/core";
 import Context from "../Context";
 import { useMobileNet } from "./useMobileNet";

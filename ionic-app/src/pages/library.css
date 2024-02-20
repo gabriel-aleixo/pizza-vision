@@ -1,11 +1,11 @@
 ion-card {
     border: 1px solid black;
-    aspect-ratio: 1;
+    /* aspect-ratio: 1; */
     align-content: center;
     justify-content: center;
     justify-items: center;
     align-items: center;
-    display: flex;
+    /* display: flex; */
     box-shadow: 2px 2px black;
 }
 

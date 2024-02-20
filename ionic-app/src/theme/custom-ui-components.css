@@ -15,15 +15,15 @@ ion-header {
 
 /* Components customizations */
 
-ion-input {
+/* ion-input {
     border: 2px solid black;
     border-radius: 8px;
     background: #ffffff !important;
     padding-left: 2px !important;
     --padding-start: 4px !important;
-}
+} */
 
-ion-button {
-    border-radius: 8px;
+ion-button::part(native) {
+    border-radius: 20px;
     box-shadow: 4px 4px black;
 }

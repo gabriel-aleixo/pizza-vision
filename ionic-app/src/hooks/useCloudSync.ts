@@ -1,5 +1,5 @@
 import { useCallback, useContext } from "react";
-import { supabase } from "../supabaseClient";
+import { supabase } from "../services/supabaseClient";
 import Context from "../Context";
 import { UserPhoto } from "./usePhotoGallery";
 import { Session } from "@supabase/supabase-js";

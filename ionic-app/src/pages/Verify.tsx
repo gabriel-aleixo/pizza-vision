@@ -15,7 +15,7 @@ import {
   IonBackButton,
   IonNote,
 } from "@ionic/react";
-import { supabase } from "../supabaseClient";
+import { supabase } from "../services/supabaseClient";
 import Context from "../Context";
 import { Redirect, useHistory } from "react-router";
 // import { usePhotoGallery } from "../hooks/usePhotoGallery";
