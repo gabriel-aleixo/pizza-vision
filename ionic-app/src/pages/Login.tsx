@@ -11,6 +11,12 @@ import {
   useIonToast,
   useIonLoading,
   IonNote,
+  IonCardContent,
+  IonCardHeader,
+  IonCardSubtitle,
+  IonCardTitle,
+  IonItem,
+  IonCard,
 } from "@ionic/react";
 import { supabase } from "../services/supabaseClient";
 import Context from "../Context";
@@ -21,7 +27,6 @@ import "./Login.css";
 
 function LoginPage() {
   const { dispatch, session, isLoadingSession } = useContext(Context);
-
   useEffect(() => {
 
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -38,7 +43,6 @@ function LoginPage() {
         state: { session: session, isLoadingSession: false },
       });
     });
-
   }, [dispatch]);
 
   if (isLoadingSession) {
@@ -73,7 +77,9 @@ function LoginField() {
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     await showLoading();
-    const { data, error } = await supabase.auth.signInWithOtp({ email: signinEmail });
+    const { data, error } = await supabase.auth.signInWithOtp({
+      email: signinEmail,
+    });
     if (error) {
       await showToast({
         message: error.message,
@@ -88,34 +94,39 @@ function LoginField() {
   };
 
   return (
-    <>
-      <div className="ion-padding">
-        <h1>Login</h1>
-        <p>First, enter the email you want to use to sign-in.</p>
-      </div>
-      <form className="ion-padding" onSubmit={handleLogin}>
-        <IonLabel position="stacked">Email*</IonLabel>
-        <IonInput
-          clearInput={true}
-          value={signinEmail}
-          name="email"
-          onIonChange={(e) =>
-            dispatch({
-              type: "SET_STATE",
-              state: { signinEmail: e.detail.value ?? "" },
-            })
-          }
-          type="email"
-          required
-        />
-        <IonNote slot="helper">*Required</IonNote>
-        <div className="ion-text-center ion-padding-top">
-          <IonButton expand="block" type="submit">
-            Next
-          </IonButton>
-        </div>
-      </form>
-    </>
+    <IonCard color={"light"}>
+      <IonCardHeader>
+        <IonCardTitle>Login</IonCardTitle>
+        <IonCardSubtitle>
+          First, enter the email you want to use to sign-in
+        </IonCardSubtitle>
+      </IonCardHeader>
+      <IonCardContent>
+
+          <form className="ion-padding" onSubmit={handleLogin}>
+         <IonItem lines="full" color={"light"}>           
+            <IonLabel position="stacked">Email*</IonLabel>
+            <IonInput
+              clearInput={true}
+              value={signinEmail}
+              name="email"
+              onIonChange={(e) =>
+                dispatch({
+                  type: "SET_STATE",
+                  state: { signinEmail: e.detail.value ?? "" },
+                })
+              }
+              type="email"
+              required
+            />
+            <IonNote slot="helper">*Required</IonNote>
+        </IonItem>            
+              <IonButton expand="full" type="submit">
+                Next
+              </IonButton>
+          </form>
+      </IonCardContent>
+    </IonCard>
   );
 }
 

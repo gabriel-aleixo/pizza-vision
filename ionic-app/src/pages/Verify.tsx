@@ -14,6 +14,12 @@ import {
   IonButtons,
   IonBackButton,
   IonNote,
+  IonCardSubtitle,
+  IonCard,
+  IonCardHeader,
+  IonCardTitle,
+  IonCardContent,
+  IonItem,
 } from "@ionic/react";
 import { supabase } from "../services/supabaseClient";
 import Context from "../Context";
@@ -124,35 +130,41 @@ function OtpField() {
 
   return (
     <>
-      <div className="ion-padding">
-        <h1>Login</h1>
-        <p>Now enter the code we sent you via email.</p>
-        <p>
-          If you haven't received it yet, give it a minute and check your spam
-          folder.
-        </p>
-      </div>
-      <form className="ion-padding" onSubmit={handleVerifyOtp}>
-        <IonLabel position="stacked">Code*</IonLabel>
-        <IonInput
-          className="ion-text-center"
-          clearInput={true}
-          placeholder="_ _ _ _ _ _"
-          required
-          value={otp}
-          name="otp"
-          onIonChange={(e) => setOtp(e.detail.value ?? "")}
-          type="number"
-        />
-        <IonNote slot="helper">
-          *It's a 6 numbers code, and it's required
-        </IonNote>
-        <div className="ion-text-center ion-padding-top">
-          <IonButton expand="block" type="submit">
-            Login
-          </IonButton>
-        </div>
-      </form>
+      <IonCard color={"light"}>
+        <IonCardHeader>
+          <IonCardTitle>Login</IonCardTitle>
+          <IonCardSubtitle>
+            Now enter the code we sent you via email
+          </IonCardSubtitle>
+          <IonNote>
+            If you haven't received it yet, give it a minute and check your spam
+            folder
+          </IonNote>
+        </IonCardHeader>
+        <IonCardContent>
+          <form className="ion-padding" onSubmit={handleVerifyOtp}>
+            <IonItem lines="none" color={"light"}>
+              <IonLabel position="stacked">Code*</IonLabel>
+              <IonInput
+                className="ion-text-center"
+                clearInput={true}
+                placeholder="_ _ _ _ _ _"
+                required
+                value={otp}
+                name="otp"
+                onIonChange={(e) => setOtp(e.detail.value ?? "")}
+                type="number"
+              />
+              <IonNote slot="helper">
+                *It's a 6 numbers code, and it's required
+              </IonNote>
+            </IonItem>
+            <IonButton expand="full" type="submit">
+              Login
+            </IonButton>
+          </form>
+        </IonCardContent>
+      </IonCard>
     </>
   );
 }

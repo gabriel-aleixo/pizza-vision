@@ -1,0 +1,4 @@
+.item-delete-button::part(native) {
+    box-shadow: none !important;
+
+}

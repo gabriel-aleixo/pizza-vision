@@ -4,27 +4,23 @@ import {
   IonInput,
   IonLabel,
   IonPage,
-  // IonLoading,
   useIonLoading,
   useIonToast,
   useIonRouter,
   IonNote,
   IonList,
-  IonIcon,
-  IonListHeader,
   IonItem,
   IonCard,
   IonCardHeader,
   IonCardContent,
   IonCardTitle,
   IonCardSubtitle,
-  IonToggle,
 } from "@ionic/react";
 import { useState, useContext } from "react";
 import Context from "../Context";
+import LibrarySharingCard from "../components/LibrarySharingCard";
 import { supabase } from "../services/supabaseClient";
 import { useUserProfile } from "../hooks/useUserProfile";
-import { trash } from "ionicons/icons";
 
 import "./Account.css";
 
@@ -91,45 +87,6 @@ function AccountPage() {
     }
   };
 
-  /**
-   * Updates user sharing preference on supabase and updates app state
-   * @param e Ionic toggle custome event
-   */
-  const handleSharingChange = async (e?: any) => {
-    e?.preventDefault();
-
-    await showLoading();
-
-    try {
-      let { data, error } = await supabase
-        .from("profiles")
-        .update({ sharing_on: e.detail.checked })
-        .eq("id", user!.id)
-        .select()
-        .single();
-
-      let newSharingValue: boolean = data.sharing_on;
-
-      if (error) {
-        throw error;
-      } else {
-        dispatch({
-          type: "SET_STATE",
-          state: {
-            profile: {
-              ...profile!,
-              sharingOn: newSharingValue,
-            },
-          },
-        });
-      }
-    } catch (error: any) {
-      showToast({ message: error.message, duration: 5000 });
-    } finally {
-      await hideLoading();
-    }
-  };
-
   return (
     <IonPage>
       <IonContent>
@@ -159,7 +116,7 @@ function AccountPage() {
           <IonCardContent>
             <form onSubmit={updateProfile}>
               <IonItem color={"light"} lines="full">
-                <IonNote slot="helper">User Name</IonNote>
+                <IonLabel position="floating">User Name</IonLabel>
                 <IonInput
                   type="text"
                   name="username"
@@ -173,7 +130,7 @@ function AccountPage() {
                 />
               </IonItem>
               <IonItem color={"light"} lines="full">
-                <IonNote slot="helper">Full Name</IonNote>
+                <IonLabel position="floating">Full Name</IonLabel>
                 <IonInput
                   type="text"
                   name="full_name"
@@ -193,48 +150,7 @@ function AccountPage() {
           </IonCardContent>
         </IonCard>
 
-        <IonCard color={"light"}>
-          <IonCardHeader>
-            <IonCardTitle>Library Sharing</IonCardTitle>
-            <IonCardSubtitle>
-              Share access to your library with other users
-            </IonCardSubtitle>
-          </IonCardHeader>
-          <IonCardContent>
-            <IonList lines="none">
-              <IonListHeader color={"light"}>General Access</IonListHeader>
-              <IonItem color={"light"}>
-                <IonLabel>
-                  Sharing is {profile.sharingOn ? <>ON</> : <>OFF</>}
-                </IonLabel>
-                <IonToggle
-                  onIonChange={handleSharingChange}
-                  slot="end"
-                  checked={profile.sharingOn}
-                ></IonToggle>
-              </IonItem>
-            </IonList>
-
-            {profile.sharingOn && profile.photosAccessGrantedTo.length > 0 ? (
-              <>
-                <IonList lines="none">
-                  <IonListHeader color={"light"}>
-                    People with access
-                  </IonListHeader>
-                  {profile.photosAccessGrantedTo.map((value, index) => (
-                    <IonItem key={index} color={"light"}>
-                      <IonLabel>{value.full_name}</IonLabel>
-                      <IonIcon icon={trash} slot="end" color="danger"></IonIcon>
-                    </IonItem>
-                  ))}
-                </IonList>
-                <IonButton expand="full">Add others</IonButton>
-              </>
-            ) : (
-              <></>
-            )}
-          </IonCardContent>
-        </IonCard>
+        <LibrarySharingCard />
 
         <IonCard color={"light"}>
           <IonCardHeader>

@@ -1,6 +1,6 @@
 import React, { createContext, useReducer, Dispatch, ReactNode } from "react";
-import { Session, User } from "@supabase/gotrue-js/src/lib/types"
-import { UserPhoto } from "../hooks/usePhotoGallery"
+import { Session, User } from "@supabase/gotrue-js/src/lib/types";
+import { UserPhoto } from "../hooks/usePhotoGallery";
 
 export interface UserProfile {
   username: string;
@@ -8,16 +8,15 @@ export interface UserProfile {
   sharingOn: boolean;
   photosAccessGrantedBy: any[];
   photosAccessGrantedTo: any[];
-
 }
 
-const initialProfile : UserProfile = {
+const initialProfile: UserProfile = {
   username: "",
   fullName: "",
   sharingOn: false,
   photosAccessGrantedBy: [],
   photosAccessGrantedTo: [],
-}
+};
 
 interface AppState {
   session: Session | null;
@@ -52,14 +51,13 @@ const resetState: Partial<AppState> = {
 };
 
 type StateAction =
-| {
-    type: "SET_STATE";
-    state: Partial<AppState>;
-  }
-| {
-    type: "RESET_STATE";
-  };
-
+  | {
+      type: "SET_STATE";
+      state: Partial<AppState>;
+    }
+  | {
+      type: "RESET_STATE";
+    };
 
 interface AppContext extends AppState {
   dispatch: Dispatch<StateAction>;
@@ -74,7 +72,7 @@ export const ContextProvider: React.FC<{ children: ReactNode }> = (props) => {
       case "SET_STATE":
         return { ...state, ...action.state };
       case "RESET_STATE":
-        return {...state, ...resetState};
+        return { ...state, ...resetState };
       default:
         return { ...state };
     }
