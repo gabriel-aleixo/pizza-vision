@@ -56,6 +56,7 @@ const App: React.FC = () => {
   const { getProfile } = useUserProfile();
 
   useEffect(() => {
+
     const loadUserData = async () => {
       if (session === null) {
         try {
@@ -143,7 +144,6 @@ const ProtectedRoutes: React.FC = () => {
         </IonTabButton>
         <IonTabButton tab="tab1" href="/feed">
           <IonIcon icon={pizza} />
-          {/* <Logo className="logo" /> */}
           <IonLabel>Feed</IonLabel>
         </IonTabButton>
         <IonTabButton tab="tab3" href="/account">

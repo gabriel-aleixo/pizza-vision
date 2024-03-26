@@ -155,7 +155,7 @@ function OtpField() {
                 onIonChange={(e) => setOtp(e.detail.value ?? "")}
                 type="number"
               />
-              <IonNote slot="helper">
+              <IonNote slot="helperText">
                 *It's a 6 numbers code, and it's required
               </IonNote>
             </IonItem>

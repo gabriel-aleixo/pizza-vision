@@ -165,7 +165,7 @@ const LibrarySharingCard: React.FC = () => {
               onIonChange={handleSharingChange}
               slot="end"
               checked={profile.sharingOn}
-            ></IonToggle>
+            >Sharing</IonToggle>
           </IonItem>
         </IonList>
 

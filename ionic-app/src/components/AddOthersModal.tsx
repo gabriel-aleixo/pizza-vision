@@ -172,10 +172,11 @@ const AddOthersModal: React.FC = (props) => {
                 isValid === false && "ion-invalid"
               } ${isTouched && "ion-touched"}`}
             >
-              <IonNote slot="helper">Enter a valid email</IonNote>
-              <IonNote slot="error">Invalid email</IonNote>
+              <IonNote slot="helperText">Enter a valid email</IonNote>
+              <IonNote slot="errorText">Invalid email</IonNote>
               <IonLabel position="stacked">Email</IonLabel>
               <IonInput
+                aria-label="email"
                 ref={input}
                 type="email"
                 onIonInput={(event) => validate(event)}

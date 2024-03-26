@@ -119,7 +119,7 @@ function LoginField() {
               type="email"
               required
             />
-            <IonNote slot="helper">*Required</IonNote>
+            <IonNote slot="helperText">*Required</IonNote>
         </IonItem>            
               <IonButton expand="full" type="submit">
                 Next
