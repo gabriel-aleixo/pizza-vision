@@ -149,10 +149,10 @@ const LibrarySharingCard: React.FC = () => {
   return (
     <IonCard color={"light"}>
       <IonCardHeader>
-        <IonCardTitle>Library Sharing</IonCardTitle>
         <IonCardSubtitle>
           Share access to your library with other users
         </IonCardSubtitle>
+        <IonCardTitle>Library Sharing</IonCardTitle>
       </IonCardHeader>
       <IonCardContent>
         <IonList lines="none">
@@ -162,10 +162,11 @@ const LibrarySharingCard: React.FC = () => {
               Sharing is {profile.sharingOn ? <>ON</> : <>OFF</>}
             </IonLabel>
             <IonToggle
+              aria-label="Sharing"
               onIonChange={handleSharingChange}
               slot="end"
               checked={profile.sharingOn}
-            >Sharing</IonToggle>
+            ></IonToggle>
           </IonItem>
         </IonList>
 
@@ -174,7 +175,7 @@ const LibrarySharingCard: React.FC = () => {
             <IonListHeader color={"light"}>People with access</IonListHeader>
             {profile.photosAccessGrantedTo.map((value, index) => (
               <IonItem key={index} color={"light"}>
-                <IonLabel>{value.full_name}</IonLabel>
+                <IonLabel>{!value.full_name ? value.username : value.full_name}</IonLabel>
                 <IonButton
                   data-id={value.id}
                   className="item-delete-button"

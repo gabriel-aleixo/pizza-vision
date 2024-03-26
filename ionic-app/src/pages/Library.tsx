@@ -10,17 +10,43 @@ import {
   IonSegment,
   IonSegmentButton,
   IonCard,
+  IonList,
+  IonItem,
+  IonIcon,
+  IonAccordionGroup,
+  IonAccordion,
+  IonLabel,
 } from "@ionic/react";
 import { UserPhoto } from "../hooks/usePhotoGallery";
 import { useContext, useEffect, useState } from "react";
 import Context from "../Context";
 
 import "./library.css";
+import { chevronDownOutline, chevronForwardOutline } from "ionicons/icons";
+import React from "react";
 
 const Library: React.FC = () => {
   const [segment, setSegment] = useState<string>("all");
-  const { photos } = useContext(Context);
+  const { photos, profile } = useContext(Context);
   const [libraryPhotos, setLibraryPhotos] = useState<UserPhoto[]>(photos);
+  const [libraries, setLibraries] = useState([
+    { name: "My Photos", photos: photos, expanded: true },
+    { name: "Another User", photos: photos, expanded: true },
+  ]);
+
+
+  // Toggle library's expanded state
+  const toggleLib = (libIndex: number) => {
+    const newLibs = libraries.map((lib, index) => {
+      if (index === libIndex) {
+        return { ...lib, expanded: !lib.expanded };
+      }
+      return lib;
+    });
+    setLibraries(newLibs);
+  };
+
+
 
   const PhotosElementProps = { photos: libraryPhotos };
 
@@ -40,7 +66,7 @@ const Library: React.FC = () => {
     <IonPage>
       <IonHeader>
         <IonToolbar color={"primary"}>
-          <IonSegment color={"secondary"} value={segment}>
+          <IonSegment value={segment}>
             <IonSegmentButton onClick={() => setSegment("all")} value="all">
               All
             </IonSegmentButton>
@@ -54,13 +80,23 @@ const Library: React.FC = () => {
         </IonToolbar>
       </IonHeader>
       <IonContent>
-        {!photos.length ? (
-          <div className="ion-padding">
-            <p>Take your first photo by going to the Feed tab</p>
-            </div>
-        ) : (
-          <PhotosElement {...PhotosElementProps} />
-        )}
+
+        <IonList>
+          {libraries.map((library, index) => (
+            <React.Fragment key={index}>
+              <IonItem button detail={false} onClick={() => toggleLib(index)}>
+                {library.name}
+                <IonIcon
+                  slot="start"
+                  icon={
+                    library.expanded ? chevronDownOutline : chevronForwardOutline
+                  }
+                />
+              </IonItem>
+              {library.expanded && <PhotosElement {...PhotosElementProps} />}
+            </React.Fragment>
+          ))}
+        </IonList>
       </IonContent>
     </IonPage>
   );

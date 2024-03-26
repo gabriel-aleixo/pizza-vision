@@ -34,7 +34,7 @@ export function useUserProfile() {
           async (uid: any) => {
             let { data, error } = await supabase
               .from("profiles")
-              .select("id, full_name")
+              .select("id, full_name, username")
               .eq("id", uid)
               .single();
 

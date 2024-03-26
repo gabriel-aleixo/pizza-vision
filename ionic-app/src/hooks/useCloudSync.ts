@@ -53,7 +53,8 @@ export function useCloudSync() {
   );
 
   /**
-   * Returns Base64-encoded ASCII string with image data
+   * Retrieves image blob from cloud and returns image data
+   * into Base64-encoded ASCII string form
    * @param filename : string
    * @returns Promise<string>
    */
@@ -97,7 +98,6 @@ export function useCloudSync() {
    */
   const updateCloudKVStore = useCallback(
     async (session: Session | null, values: UserPhoto[]) => {
-
       const updates = {
         user_id: session?.user?.id,
         photos: values,

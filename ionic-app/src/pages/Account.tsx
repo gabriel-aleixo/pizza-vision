@@ -108,16 +108,17 @@ function AccountPage() {
 
         <IonCard color={"light"}>
           <IonCardHeader>
-            <IonCardTitle>Profile</IonCardTitle>
             <IonCardSubtitle>
-              Your username and full name can be visible to other users
+              Your username and full name are visible to other users
             </IonCardSubtitle>
+            <IonCardTitle>Profile</IonCardTitle>
           </IonCardHeader>
           <IonCardContent>
             <form onSubmit={updateProfile}>
               <IonItem color={"light"} lines="full">
-                <IonLabel position="floating">User Name</IonLabel>
+                <IonLabel position="stacked">User Name</IonLabel>
                 <IonInput
+                  aria-label="Username"
                   type="text"
                   name="username"
                   value={newProfile?.username ?? ""}
@@ -130,8 +131,9 @@ function AccountPage() {
                 />
               </IonItem>
               <IonItem color={"light"} lines="full">
-                <IonLabel position="floating">Full Name</IonLabel>
+                <IonLabel position="stacked">Full Name</IonLabel>
                 <IonInput
+                  aria-label="full name"
                   type="text"
                   name="full_name"
                   value={newProfile?.full_name ?? ""}
@@ -176,10 +178,10 @@ function AccountPage() {
 
         <IonCard color={"light"}>
           <IonCardHeader>
-            <IonCardTitle>Danger Zone</IonCardTitle>
             <IonCardSubtitle>
               Email us if you want to delete your account
             </IonCardSubtitle>
+            <IonCardTitle>Danger Zone</IonCardTitle>
           </IonCardHeader>
           <IonCardContent>
             <IonButton

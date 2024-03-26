@@ -30,7 +30,7 @@ export function useLibrarySharing() {
         const sharedUpdatedAt = await supabase
         .from("photos")
         .select("updated_at")
-        .eq("user_id", session?.user.id);
+        .eq("user_id", sharedUid);
 
         // If shared newer than local, return true
         console.log("local upd", localUpdatedAt);
@@ -42,7 +42,7 @@ export function useLibrarySharing() {
       }
       return true;
     },
-    []
+    [photos]
   );
 
   return {

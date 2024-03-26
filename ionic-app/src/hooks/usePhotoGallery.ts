@@ -1,14 +1,12 @@
 import { useEffect, useContext } from "react";
 import {
   isPlatform,
-  getPlatforms,
   useIonLoading,
   useIonToast,
 } from "@ionic/react";
 import {
   Camera,
   CameraResultType,
-  CameraSource,
   Photo,
 } from "@capacitor/camera";
 import { Filesystem, Directory } from "@capacitor/filesystem";
@@ -18,9 +16,10 @@ import { Capacitor } from "@capacitor/core";
 import Context from "../Context";
 import { useMobileNet } from "./useMobileNet";
 import { useCloudSync } from "./useCloudSync";
+import { useLoadSaved } from "./useLoadSaved";
 
 // Create instance of Ionic KV Storage in browser/storage/indexDB/_ionickv
-const store = new Storage();
+export const store = new Storage();
 
 const createStorage = async () => {
   await store.create();
@@ -30,15 +29,15 @@ createStorage();
 
 /**
  * Photo Gallery Hook
- * @returns
+ * @returns { takePhoto(), deletePhoto(), setFlag() }
  */
 export function usePhotoGallery() {
 
   const { dispatch, session, isLoadingSession, photos } = useContext(Context);
   const { getEmbeddings } = useMobileNet();
   const { savePictureToCloud } = useCloudSync();
-  const { downloadPictureFromCloud } = useCloudSync();
   const { updateCloudKVStore } = useCloudSync();
+  const { loadSaved } = useLoadSaved();
 
   const [showLoading, hideLoading] = useIonLoading();
 
@@ -48,158 +47,11 @@ export function usePhotoGallery() {
   const PHOTO_STORAGE = `photos-usr-${session?.user?.id ?? "undefined"}`;
 
   useEffect(() => {
-    /**
-     * Looks for local or cloud versions of photos KVs and Image data
-     * @returns
-     */
-    const loadSaved = async () => {
-      dispatch({ type: "SET_STATE", state: { isLoadingData: true } });
-      let value = await store.get(PHOTO_STORAGE);
 
-      // If no local copy of key-value store, look for cloud backup
-      if (!value) {
-        console.log("Getting KV from cloud");
-        const { data, error } = await supabase
-          .from("photos")
-          .select("photos")
-          .eq("user_id", session?.user.id);
-
-        if (error) {
-          console.error(error);
-          await showToast({
-            message: error.message,
-            duration: 3000,
-          });
-        }
-        value = data?.length
-          ? JSON.stringify(data[0].photos)
-          : JSON.stringify([]);
-        store.set(PHOTO_STORAGE, value);
-      }
-
-      let photosInStore = (value ? JSON.parse(value) : []) as UserPhoto[];
-
-      console.log("Photos in store", photosInStore);
-
-      console.log("Platforms ", getPlatforms());
-
-      // "hybrid" will detect Capacitor;
-      if (!isPlatform("hybrid")) {
-        for (let photo of photosInStore) {
-          // Recover picture file from local filesystem
-          let file;
-          try {
-            file = await Filesystem.readFile({
-              path: photo.filepath,
-              directory: Directory.Data,
-            });
-          } catch (error) {
-            console.log(error);
-          }
-
-          // Web platform only: Load the photos as base64 data
-          if (file?.data) {
-            photo.webviewPath = `data:image/jpeg;base64,${file.data}`;
-
-            // Check if photo hasn't been backedup before
-            if (photo.cloudBackup !== true) {
-              photo.cloudBackup = await savePictureToCloud(
-                file.data,
-                photo.filepath
-              );
-            }
-          } else {
-            // If can't get file from local filesystem, look for picture in the cloud
-            console.log("Getting file from cloud bucket", photo.filepath);
-            const imageData = await downloadPictureFromCloud(photo.filepath);
-            photo.webviewPath = `data:image/jpeg;base64,${imageData}`;
-
-            // Then save to local filesystem and mark photo as backed up for local key-value store
-            Filesystem.writeFile({
-              path: photo.filepath,
-              data: imageData,
-              directory: Directory.Data,
-            }).then((response) =>
-              response.uri
-                ? (photo.cloudBackup = true)
-                : (photo.cloudBackup = false)
-            );
-
-            // And add photo to photo store
-            const filepath = photo.filepath;
-            photosInStore = [
-              photo,
-              ...photosInStore.filter((photo) => photo.filepath !== filepath),
-            ];
-          }
-        }
-        // "hybrid" will detect Capacitor;
-      } else if (isPlatform("hybrid")) {
-        for (let photo of photosInStore) {
-          // Check if photo can be loaded from Filesystem
-          const decodeImage = async (photo: UserPhoto): Promise<boolean> => {
-            return new Promise(async (resolve, reject) => {
-              let img = new Image();
-              img.src = photo.webviewPath ? photo.webviewPath : "";
-              img
-                .decode()
-                .then(() => {
-                  resolve(true);
-                })
-                .catch((error) => {
-                  resolve(false);
-                });
-            });
-          };
-
-          // If can't get file from local filesystem, look for picture in the cloud
-          if ((await decodeImage(photo)) === false) {
-            console.log("Getting file from cloud bucket", photo.filepath);
-            const imageData = await downloadPictureFromCloud(photo.filepath);
-
-            // Then save to local filesystem and mark photo as backed up for local key-value store
-            let savedFile;
-            try {
-              savedFile = await Filesystem.writeFile({
-                path: photo.filepath,
-                data: imageData,
-                directory: Directory.Data,
-              });
-              photo.cloudBackup = true;
-              photo.webviewPath = Capacitor.convertFileSrc(savedFile.uri);
-            } catch (error) {
-              console.error(`Could not write file to Filesystem`);
-            }
-            // And add photo to photo store
-            const filepath = photo.filepath;
-            photosInStore = [
-              photo,
-              ...photosInStore.filter((photo) => photo.filepath !== filepath),
-            ];
-          }
-        }
-      }
-
-      // Update app state with new photos in store
-      store.set(PHOTO_STORAGE, JSON.stringify(photosInStore));
-      dispatch({
-        type: "SET_STATE",
-        state: { photos: photosInStore, isLoadingData: false },
-      });
-
-      return;
-    };
-
+    // Loads all KVs and pictures in memory from local or cloud sources
     if (!isLoadingSession) loadSaved();
-  }, [
-    PHOTO_STORAGE,
-    dispatch,
-    downloadPictureFromCloud,
-    isLoadingSession,
-    savePictureToCloud,
-    session?.user.id,
-    showToast,
-  ]);
+
+  }, [isLoadingSession, loadSaved]);
 
   /**
    * Saves picture to local Filesystem + Cloud and gets Image Embeddings
